@@ -3,7 +3,6 @@ package xyz.elwoodwjz.brewlybackend.entity;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import jakarta.persistence.Id;
-import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Column;
 import java.time.LocalDateTime;
 import java.util.UUID;
