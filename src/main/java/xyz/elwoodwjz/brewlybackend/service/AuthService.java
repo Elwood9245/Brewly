@@ -37,22 +37,6 @@ public class AuthService {
      * @return the registered user
      */
     public User register(String username, String email, String password) {
-        if (username == null || username.trim().isEmpty() || username.length() > 50) {
-            throw new IllegalArgumentException("Username must be 1-50 characters");
-        }
-        if (email == null || email.trim().isEmpty() || email.length() > 100) {
-            throw new IllegalArgumentException("Email must be 1-100 characters");
-        }
-        if (password == null || password.trim().isEmpty() || password.length() < 6 || password.length() > 64) {
-            throw new IllegalArgumentException("Password must be 6-64 characters");
-        }
-        String emailPattern = "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$";
-        if (!email.matches(emailPattern)) {
-            throw new IllegalArgumentException("Invalid email format");
-        }
-        if (!username.matches("^[A-Za-z0-9_]+$")) {
-            throw new IllegalArgumentException("Username can only contain letters, numbers, and underscores");
-        }
         username = username.trim();
         email = email.trim().toLowerCase();
         if (userRepository.existsByEmail(email)) {
@@ -79,12 +63,6 @@ public class AuthService {
      * @return the logged in user
      */
     public User login(String account, String password) {
-        if (account == null || account.trim().isEmpty() || account.length() > 100) {
-            throw new IllegalArgumentException("Account must not be empty or too long");
-        }
-        if (password == null || password.trim().isEmpty() || password.length() > 64) {
-            throw new IllegalArgumentException("Password must not be empty or too long");
-        }
         account = account.trim();
         Optional<User> userOpt = userRepository.findByEmail(account.toLowerCase());
         if (userOpt.isEmpty()) {
@@ -103,9 +81,6 @@ public class AuthService {
      * @return the deleted user
      */
     public User delete(String account) {
-        if (account == null || account.trim().isEmpty() || account.length() > 100) {
-            throw new IllegalArgumentException("Account must not be empty or too long");
-        }
         account = account.trim();
         Optional<User> userOpt = userRepository.findByEmail(account.toLowerCase());
         if (userOpt.isEmpty()) {
