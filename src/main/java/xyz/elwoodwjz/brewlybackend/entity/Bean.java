@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import java.math.BigDecimal;
 
 @Data
 @NoArgsConstructor
@@ -42,14 +43,22 @@ public class Bean {
     @Column(name = "roast_type", nullable = false)
     private RoastLevel roastType;
 
+    @Column(name = "roasted_at")
+    private Instant roastedAt;
+
+    @Column(name = "rest_days")
+    private Integer restDays;
+
     @Column(length = 200)
     private String flavour;
 
+    @Builder.Default
     @Column(nullable = false, precision = 8, scale = 2)
-    private Double weight = 0.0;
+    private BigDecimal weight = BigDecimal.ZERO;
 
+    @Builder.Default
     @Column(precision = 8, scale = 2)
-    private Double consumption = 0.0;
+    private BigDecimal consumption = BigDecimal.ZERO;
 
     @Column(columnDefinition = "text")
     private String notes;
@@ -62,6 +71,7 @@ public class Bean {
     @Column(name = "updated_at")
     private Instant updatedAt;
 
+    @Builder.Default
     @Column(name = "is_active")
     private Boolean isActive = true;
 

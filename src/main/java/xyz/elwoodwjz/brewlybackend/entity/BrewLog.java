@@ -13,6 +13,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import java.time.Instant;
 import java.util.UUID;
+import java.math.BigDecimal;
 
 @Data
 @NoArgsConstructor
@@ -38,14 +39,14 @@ public class BrewLog {
     @Column(name = "grind_size", length = 50)
     private String grindSize;
 
-    @Column(name = "bean_weight_gram")
-    private Double beanWeightGram;
+    @Column(name = "bean_weight_gram", precision = 8, scale = 2)
+    private BigDecimal beanWeightGram;
 
-    @Column(name = "water_weight_gram")
-    private Double waterWeightGram;
+    @Column(name = "water_weight_gram", precision = 8, scale = 2)
+    private BigDecimal waterWeightGram;
 
-    @Column(name = "water_temperature")
-    private Double waterTemperature;
+    @Column(name = "water_temperature", precision = 5, scale = 2)
+    private BigDecimal waterTemperature;
 
     @Column(name = "brew_time_seconds")
     private Integer brewTimeSeconds;

@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import java.math.BigDecimal;
 
 @Data
 @NoArgsConstructor
@@ -12,5 +13,5 @@ import lombok.Builder;
 public class RecipeStep {
     private String instruction;
     private Integer time; // seconds
-    private Double waterAmount; // grams
+    private BigDecimal waterAmount; // grams
 } 

@@ -45,6 +45,7 @@ public class Recipe {
     @Column(columnDefinition = "jsonb", nullable = false)
     private String steps;
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private RecipeVisibility visibility = RecipeVisibility.PRIVATE;

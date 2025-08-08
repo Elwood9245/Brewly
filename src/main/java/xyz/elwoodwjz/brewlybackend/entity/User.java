@@ -4,6 +4,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import jakarta.persistence.Id;
 import jakarta.persistence.Column;
+import jakarta.persistence.GeneratedValue;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.Data;
@@ -20,7 +21,7 @@ import org.hibernate.annotations.UuidGenerator;
 @Table(name = "users")
 public class User {
     @Id
-    @UuidGenerator
+    @GeneratedValue(strategy = jakarta.persistence.GenerationType.AUTO)
     @Column(columnDefinition = "uuid", updatable = false, nullable = false)
     private UUID id;
 
