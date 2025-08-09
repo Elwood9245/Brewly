@@ -1,6 +1,16 @@
 # Brewly
 
-A responsive full-stack web application designed for home baristas and specialty coffee enthusiasts to log brews, track inventory, share recipes, and improve brewing techniques through analytics and AI. This repository is used for the back-end.
+A responsive full-stack web application designed for home baristas and specialty coffee enthusiasts to log brews, track inventory, share recipes, and improve brewing techniques through analytics and AI.
+
+## Project Structure
+
+```
+brewly/
+├── backend/          # Spring Boot REST API
+├── frontend/         # Vue.js SPA
+├── docs/            # Documentation
+└── README.md        # This file
+```
 
 ## Features
 
@@ -20,6 +30,7 @@ A responsive full-stack web application designed for home baristas and specialty
 
 ## Tech Stack
 
+### Backend
 - **Spring Boot 3.5.3** - Main framework
 - **Spring Security** - Authentication and authorization
 - **Spring Data JPA** - Data access layer
@@ -28,32 +39,32 @@ A responsive full-stack web application designed for home baristas and specialty
 - **Jakarta Validation** - Input validation
 - **Lombok** - Code simplification
 
+### Frontend
+- **Vue.js 3** - Progressive framework
+- **Vite** - Build tool
+- **Vue Router** - Routing
+- **Pinia** - State management
+- **Axios** - HTTP client
+- **Tailwind CSS** - Styling
+
+## Development
+
+### Backend Setup
+```bash
+cd backend
+./mvnw spring-boot:run
+```
+
+### Frontend Setup
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
 ## Architecture
 - **RESTful API** - Backend API design
+- **SPA** - Single Page Application frontend
+- **JWT Authentication** - Stateless authentication
 - **DTO Pattern** - Data transfer objects for API communication
 - **Layered Architecture** - Entity, Repository, Service, Controller
-
-## Project Structure
-
-```
-src/main/java/xyz/elwoodwjz/brewlybackend/
-├── entity/
-│   ├── User.java
-│   ├── Bean.java
-│   ├── Recipe.java
-│   └── ...
-├── repository/
-│   └── UserRepository.java
-├── service/
-│   └── AuthService.java
-├── controller/
-│   └── AuthController.java
-├── dto/
-│   ├── auth/
-│   │   ├── RegisterRequest.java
-│   │   ├── LoginRequest.java
-│   │   └── AuthResponse.java
-│   └── user/
-│       └── UserResponse.java
-└── config/
-```
