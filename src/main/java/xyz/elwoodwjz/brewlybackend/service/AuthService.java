@@ -7,7 +7,6 @@ import xyz.elwoodwjz.brewlybackend.entity.User;
 import xyz.elwoodwjz.brewlybackend.repository.UserRepository;
 import java.time.LocalDateTime;
 import java.util.Optional;
-import java.util.UUID;
 
 
 /**
@@ -46,7 +45,6 @@ public class AuthService {
             throw new IllegalArgumentException("Username already in use");
         }
         User user = User.builder()
-                .id(UUID.randomUUID())
                 .username(username)
                 .email(email)
                 .passwordHash(passwordEncoder.encode(password))

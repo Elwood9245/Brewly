@@ -21,7 +21,8 @@ import org.hibernate.annotations.UuidGenerator;
 @Table(name = "users")
 public class User {
     @Id
-    @GeneratedValue(strategy = jakarta.persistence.GenerationType.AUTO)
+    @GeneratedValue
+    @UuidGenerator
     @Column(columnDefinition = "uuid", updatable = false, nullable = false)
     private UUID id;
 
