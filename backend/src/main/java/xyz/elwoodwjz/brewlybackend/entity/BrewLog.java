@@ -30,6 +30,9 @@ public class BrewLog {
     @Column(name = "user_id", nullable = false)
     private UUID userId;
 
+    @Column(name = "bean_id")
+    private UUID beanId;
+
     @Column(name = "bean_name", length = 100, nullable = false)
     private String beanName;
 
@@ -56,6 +59,9 @@ public class BrewLog {
 
     @Column(name = "flavor_tags", columnDefinition = "text[]")
     private String[] flavorTags;
+
+    @Column(name = "rating", precision = 3, scale = 1)
+    private BigDecimal rating;
 
     @Column(name = "recipe_id")
     private UUID recipeId;

@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import xyz.elwoodwjz.brewlybackend.entity.User;
+import xyz.elwoodwjz.brewlybackend.config.InvalidCredentialsException;
 import xyz.elwoodwjz.brewlybackend.repository.UserRepository;
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -67,7 +68,7 @@ public class AuthService {
             userOpt = userRepository.findByUsername(account);
         }
         if (userOpt.isEmpty() || !passwordEncoder.matches(password, userOpt.get().getPasswordHash())) {
-            throw new IllegalArgumentException("Invalid account or password");
+            throw new InvalidCredentialsException("Invalid account or password");
         }
         return userOpt.get();
     }

@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+import xyz.elwoodwjz.brewlybackend.config.InvalidCredentialsException;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -77,7 +78,23 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler imple
     }
 
     /**
-     * Maps IllegalArgumentException (e.g. invalid login or registration inputs) to 400.
+     * Maps InvalidCredentialsException to 401 Unauthorised.
+     */
+    @ExceptionHandler(InvalidCredentialsException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidCredentials(InvalidCredentialsException ex,
+                                                                 HttpServletRequest request) {
+        ErrorResponse body = new ErrorResponse(
+                Instant.now(),
+                HttpStatus.UNAUTHORIZED.value(),
+                HttpStatus.UNAUTHORIZED.getReasonPhrase(),
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        return new ResponseEntity<>(body, HttpStatus.UNAUTHORIZED);
+    }
+
+    /**
+     * Maps IllegalArgumentException (e.g. invalid registration inputs) to 400.
      */
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException ex,

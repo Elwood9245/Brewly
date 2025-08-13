@@ -2,6 +2,7 @@ package xyz.elwoodwjz.brewlybackend.controller;
 
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import xyz.elwoodwjz.brewlybackend.dto.auth.RegisterRequest;
@@ -11,6 +12,7 @@ import xyz.elwoodwjz.brewlybackend.dto.user.UserResponse;
 import xyz.elwoodwjz.brewlybackend.entity.User;
 import xyz.elwoodwjz.brewlybackend.service.AuthService;
 import xyz.elwoodwjz.brewlybackend.security.JwtUtil;
+import xyz.elwoodwjz.brewlybackend.security.CustomUserDetailsService;
 
 
 /**
@@ -45,5 +47,14 @@ public class AuthController {
         String token = jwtUtil.generateToken(user);
         UserResponse userResponse = new UserResponse(user.getId().toString(), user.getUsername(), user.getEmail());
         return ResponseEntity.ok(new AuthResponse(token, userResponse));
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<UserResponse> getCurrentUser(Authentication authentication) {
+        CustomUserDetailsService.CustomUserPrincipal userPrincipal = 
+            (CustomUserDetailsService.CustomUserPrincipal) authentication.getPrincipal();
+        User user = userPrincipal.getUser();
+        UserResponse userResponse = new UserResponse(user.getId().toString(), user.getUsername(), user.getEmail());
+        return ResponseEntity.ok(userResponse);
     }
 }
