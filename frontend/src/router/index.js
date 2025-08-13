@@ -25,29 +25,29 @@ const router = createRouter({
       component: Register,
       meta: { hideForAuth: true }
     },
-    // Add more protected routes as they are created
+
     {
       path: '/explore',
       name: 'explore',
-      component: () => import('../views/HomeView.vue'), // Placeholder
+      component: () => import('../views/ExploreView.vue'),
       meta: { requiresAuth: true }
     },
     {
       path: '/inventory',
       name: 'inventory',
-      component: () => import('../views/HomeView.vue'), // Placeholder
+      component: () => import('../views/InventoryView.vue'),
       meta: { requiresAuth: true }
     },
     {
       path: '/ai',
       name: 'ai',
-      component: () => import('../views/HomeView.vue'), // Placeholder
+      component: () => import('../views/AIView.vue'),
       meta: { requiresAuth: true }
     },
     {
       path: '/addbrew',
       name: 'addbrew',
-      component: () => import('../views/HomeView.vue'), // Placeholder
+      component: () => import('../views/AddBrewView.vue'),
       meta: { requiresAuth: true }
     },
     // Catch all route - redirect to login if not authenticated, home if authenticated
@@ -67,7 +67,7 @@ router.beforeEach(async (to, from, next) => {
   const auth = useAuthStore()
   
   // Check authentication status
-  const isAuthenticated = auth.checkAuthStatus()
+  const isAuthenticated = await auth.checkAuthStatus()
   
   console.log('Route guard:', { 
     to: to.name, 

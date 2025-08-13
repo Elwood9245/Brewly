@@ -39,7 +39,7 @@ const likeRecipe = (recipeId) => {
     <div class="welcome-section mb-4">
       <div class="row align-items-center">
         <div class="col">
-          <h1 class="h3 mb-1">Welcome back, {{ auth.currentUser.value?.username || 'Coffee Lover' }}! ☕</h1>
+          <h1 class="h3 mb-1">Welcome back, {{ auth.currentUser.value?.username || 'Coffee Lover' }}!</h1>
 
         </div>
         <div class="col-auto">

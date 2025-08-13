@@ -126,9 +126,9 @@ const auth = useAuthStore()
 const sidebar = ref(null)
 
 // Check authentication status on app load
-onMounted(() => {
+onMounted(async () => {
   // Check if user is already logged in
-  auth.checkAuthStatus()
+  await auth.checkAuthStatus()
   
   // Initialize Bootstrap Offcanvas only for authenticated users
   if (auth.isAuthenticated && window.bootstrap && sidebar.value) {
@@ -144,7 +144,7 @@ const isAuthPage = computed(() => {
 
 // Computed properties for user display
 const userName = computed(() => {
-  return auth.currentUser.value?.name || auth.currentUser.value?.username || 'Guest'
+  return auth.currentUser.value?.username || 'Guest'
 })
 
 const userInitial = computed(() => {
