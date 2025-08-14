@@ -201,57 +201,8 @@ const goToLogin = () => {
 </template>
 
 <style scoped>
-.auth-container {
-  background: #f0f0f0;
-  min-height: 100vh;
-}
-
-.card {
-  border-radius: 30px;
-  background-color: rgba(255, 255, 255, 0.95);
-}
-
-.form-control {
-  border-radius: 20px;
-  border: 1px solid #dee2e6;
-  padding: 10px 16px;
-}
-
-.btn-primary {
-  background: white;
-  border: 2px solid #2d2d2d;
-  border-radius: 50px;
-  padding: 10px;
-  font-weight: 600;
-  color: black;
-  transition: all 0.2s ease;
-}
-
-.btn-primary:hover {
-  background: #1a1a1a;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  color: white;
-}
-
-.btn-primary:disabled {
-  background: #9e9e9e;
-  transform: none;
-  box-shadow: none;
-}
-
-.card-body {
-  position: relative;
-}
-
 .form-text {
   color: #6c757d;
   font-size: 0.875rem;
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .card-body {
-    padding: 2rem !important;
-  }
 }
 </style>
