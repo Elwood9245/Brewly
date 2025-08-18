@@ -103,7 +103,7 @@ export const beanUtils = {
   formatDate(dateStr) {
     if (!dateStr) return ''
     const date = new Date(dateStr)
-    return date.toLocaleDateString()
+    return date.toLocaleDateString('en-GB')
   },
 
   /**
