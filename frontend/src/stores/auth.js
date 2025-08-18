@@ -53,7 +53,7 @@ export function useAuthStore() {
 
       const data = response.data
       const user = {
-        id: data.user.id,
+        id: data.user.id, // This should be a UUID string
         username: data.user.username,
         email: data.user.email
       }

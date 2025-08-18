@@ -37,7 +37,7 @@ public class AuthController {
     public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
         User user = authService.register(request.getUsername(), request.getEmail(), request.getPassword());
         String token = jwtUtil.generateToken(user);
-        UserResponse userResponse = new UserResponse(user.getId().toString(), user.getUsername(), user.getEmail());
+        UserResponse userResponse = mapToUserResponse(user);
         return ResponseEntity.ok(new AuthResponse(token, userResponse));
     }
 
@@ -45,7 +45,7 @@ public class AuthController {
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
         User user = authService.login(request.getAccount(), request.getPassword());
         String token = jwtUtil.generateToken(user);
-        UserResponse userResponse = new UserResponse(user.getId().toString(), user.getUsername(), user.getEmail());
+        UserResponse userResponse = mapToUserResponse(user);
         return ResponseEntity.ok(new AuthResponse(token, userResponse));
     }
 
@@ -54,7 +54,20 @@ public class AuthController {
         CustomUserDetailsService.CustomUserPrincipal userPrincipal = 
             (CustomUserDetailsService.CustomUserPrincipal) authentication.getPrincipal();
         User user = userPrincipal.getUser();
-        UserResponse userResponse = new UserResponse(user.getId().toString(), user.getUsername(), user.getEmail());
+        UserResponse userResponse = mapToUserResponse(user);
         return ResponseEntity.ok(userResponse);
+    }
+
+    /**
+     * Maps User entity to UserResponse DTO
+     * @param user the User entity
+     * @return UserResponse DTO
+     */
+    private UserResponse mapToUserResponse(User user) {
+        return new UserResponse(
+            user.getId().toString(),
+            user.getUsername(),
+            user.getEmail()
+        );
     }
 }

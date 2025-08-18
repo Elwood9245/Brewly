@@ -50,6 +50,18 @@ const router = createRouter({
       component: () => import('../views/AddBrewView.vue'),
       meta: { requiresAuth: true }
     },
+    {
+      path: '/beans/add',
+      name: 'addbean',
+      component: () => import('../views/BeanForm.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/beans/:id/edit',
+      name: 'editbean',
+      component: () => import('../views/BeanForm.vue'),
+      meta: { requiresAuth: true }
+    },
     // Catch all route - redirect to login if not authenticated, home if authenticated
     {
       path: '/:pathMatch(.*)*',
