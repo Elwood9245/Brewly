@@ -1,7 +1,6 @@
 package xyz.elwoodwjz.brewlybackend.service;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -28,6 +27,18 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class BrewLogService {
     
+    /**
+     * Tolerance for bean weight measurement errors (in grams).
+     * This accounts for:
+     * - Manufacturer packaging variations (e.g., 200g bag might actually contain 205g)
+     * - Scale measurement precision
+     * - User measurement errors
+     * 
+     * Users can exceed the calculated available weight by this amount before the system
+     * prevents the brew log creation/update.
+     */
+    private static final BigDecimal BEAN_WEIGHT_TOLERANCE = new BigDecimal("10.0");
+    
     private final BrewLogRepository brewLogRepository;
     private final BeanRepository beanRepository;
     
@@ -41,10 +52,22 @@ public class BrewLogService {
             throw new UnauthorizedException("You can only create brew logs for your own beans");
         }
         
+        // Validate that there's enough bean weight available (with tolerance for measurement errors)
+        if (request.getBeanWeightGram() != null) {
+            BigDecimal availableWeight = bean.getWeight().subtract(bean.getConsumption());
+            BigDecimal requestedWeight = request.getBeanWeightGram();
+            
+            if (requestedWeight.compareTo(availableWeight.add(BEAN_WEIGHT_TOLERANCE)) > 0) {
+                throw new IllegalArgumentException("Bean weight exceeds reasonable tolerance. Available: " + 
+                    availableWeight + "g, Requested: " + requestedWeight + "g, Max allowed: " + 
+                    availableWeight.add(BEAN_WEIGHT_TOLERANCE) + "g (including " + BEAN_WEIGHT_TOLERANCE + "g tolerance)");
+            }
+        }
+        
         BrewLog brewLog = BrewLog.builder()
             .userId(userId)
             .beanId(request.getBeanId())
-            .beanName(request.getBeanName())
+            .beanName(bean.getName()) // Use bean name from the selected bean
             .method(request.getMethod())
             .grindSize(request.getGrindSize())
             .beanWeightGram(request.getBeanWeightGram())
@@ -60,6 +83,20 @@ public class BrewLogService {
             .build();
         
         BrewLog savedBrewLog = brewLogRepository.save(brewLog);
+        
+        // Update bean consumption and weight
+        if (request.getBeanWeightGram() != null) {
+            BigDecimal newConsumption = bean.getConsumption().add(request.getBeanWeightGram());
+            bean.setConsumption(newConsumption);
+            
+            // If consumption equals or exceeds weight, mark bean as inactive
+            if (newConsumption.compareTo(bean.getWeight()) >= 0) {
+                bean.setIsActive(false);
+            }
+            
+            beanRepository.save(bean);
+        }
+        
         return convertToResponse(savedBrewLog);
     }
     
@@ -81,21 +118,37 @@ public class BrewLogService {
                            sortBy != null ? sortBy : "createdAt");
         Pageable pageable = PageRequest.of(page, size, sort);
         
-        Page<BrewLog> brewLogPage = brewLogRepository.findAll(pageable);
+        // Get all user's brew logs and apply pagination manually
+        List<BrewLog> allUserBrewLogs = brewLogRepository.findByUserIdOrderByCreatedAtDesc(userId);
         
-        List<BrewLogResponse> brewLogResponses = brewLogPage.getContent().stream()
-            .filter(brewLog -> brewLog.getUserId().equals(userId))
+        // Apply sorting
+        if ("ASC".equalsIgnoreCase(sortDir)) {
+            allUserBrewLogs.sort((a, b) -> {
+                if ("createdAt".equals(sortBy)) {
+                    return a.getCreatedAt().compareTo(b.getCreatedAt());
+                }
+                return 0;
+            });
+        }
+        
+        // Calculate pagination
+        int totalElements = allUserBrewLogs.size();
+        int totalPages = (int) Math.ceil((double) totalElements / size);
+        int startIndex = page * size;
+        int endIndex = Math.min(startIndex + size, totalElements);
+        
+        List<BrewLogResponse> brewLogResponses = allUserBrewLogs.subList(startIndex, endIndex).stream()
             .map(this::convertToResponse)
             .collect(Collectors.toList());
         
         return BrewLogListResponse.builder()
             .brewLogs(brewLogResponses)
-            .totalElements((int) brewLogPage.getTotalElements())
-            .totalPages(brewLogPage.getTotalPages())
+            .totalElements(totalElements)
+            .totalPages(totalPages)
             .currentPage(page)
             .pageSize(size)
-            .hasNext(brewLogPage.hasNext())
-            .hasPrevious(brewLogPage.hasPrevious())
+            .hasNext(page < totalPages - 1)
+            .hasPrevious(page > 0)
             .build();
     }
     
@@ -108,9 +161,33 @@ public class BrewLogService {
             throw new UnauthorizedException("You can only update your own brew logs");
         }
         
+        // Get the bean to update its consumption
+        Bean bean = beanRepository.findById(request.getBeanId())
+            .orElseThrow(() -> new ResourceNotFoundException("Bean not found"));
+        
+        if (!bean.getUserId().equals(userId)) {
+            throw new UnauthorizedException("You can only update brew logs for your own beans");
+        }
+        
+        // Calculate the difference in bean weight
+        BigDecimal oldBeanWeight = brewLog.getBeanWeightGram() != null ? brewLog.getBeanWeightGram() : BigDecimal.ZERO;
+        BigDecimal newBeanWeight = request.getBeanWeightGram() != null ? request.getBeanWeightGram() : BigDecimal.ZERO;
+        BigDecimal weightDifference = newBeanWeight.subtract(oldBeanWeight);
+        
+        // Validate that there's enough bean weight available if increasing (with tolerance for measurement errors)
+        if (weightDifference.compareTo(BigDecimal.ZERO) > 0) {
+            BigDecimal availableWeight = bean.getWeight().subtract(bean.getConsumption()).add(oldBeanWeight);
+            
+            if (newBeanWeight.compareTo(availableWeight.add(BEAN_WEIGHT_TOLERANCE)) > 0) {
+                throw new IllegalArgumentException("Bean weight exceeds reasonable tolerance. Available: " + 
+                    availableWeight + "g, Requested: " + newBeanWeight + "g, Max allowed: " + 
+                    availableWeight.add(BEAN_WEIGHT_TOLERANCE) + "g (including " + BEAN_WEIGHT_TOLERANCE + "g tolerance)");
+            }
+        }
+        
         // Update fields
         brewLog.setBeanId(request.getBeanId());
-        brewLog.setBeanName(request.getBeanName());
+        brewLog.setBeanName(bean.getName()); // Use bean name from the selected bean
         brewLog.setMethod(request.getMethod());
         brewLog.setGrindSize(request.getGrindSize());
         brewLog.setBeanWeightGram(request.getBeanWeightGram());
@@ -125,6 +202,23 @@ public class BrewLogService {
         brewLog.setImportedRecipeSteps(request.getImportedRecipeSteps());
         
         BrewLog updatedBrewLog = brewLogRepository.save(brewLog);
+        
+        // Update bean consumption based on the weight difference
+        if (weightDifference.compareTo(BigDecimal.ZERO) != 0) {
+            BigDecimal newConsumption = bean.getConsumption().add(weightDifference);
+            bean.setConsumption(newConsumption);
+            
+            // If consumption equals or exceeds weight, mark bean as inactive
+            if (newConsumption.compareTo(bean.getWeight()) >= 0) {
+                bean.setIsActive(false);
+            } else {
+                // If consumption is less than weight, mark bean as active
+                bean.setIsActive(true);
+            }
+            
+            beanRepository.save(bean);
+        }
+        
         return convertToResponse(updatedBrewLog);
     }
     
@@ -135,6 +229,26 @@ public class BrewLogService {
         
         if (!brewLog.getUserId().equals(userId)) {
             throw new UnauthorizedException("You can only delete your own brew logs");
+        }
+        
+        // Update bean consumption by subtracting the deleted brew log's bean weight
+        if (brewLog.getBeanWeightGram() != null && brewLog.getBeanWeightGram().compareTo(BigDecimal.ZERO) > 0) {
+            Bean bean = beanRepository.findById(brewLog.getBeanId())
+                .orElseThrow(() -> new ResourceNotFoundException("Bean not found"));
+            
+            BigDecimal newConsumption = bean.getConsumption().subtract(brewLog.getBeanWeightGram());
+            // Ensure consumption doesn't go below zero
+            if (newConsumption.compareTo(BigDecimal.ZERO) < 0) {
+                newConsumption = BigDecimal.ZERO;
+            }
+            bean.setConsumption(newConsumption);
+            
+            // If consumption is now less than weight, mark bean as active
+            if (newConsumption.compareTo(bean.getWeight()) < 0) {
+                bean.setIsActive(true);
+            }
+            
+            beanRepository.save(bean);
         }
         
         brewLogRepository.delete(brewLog);

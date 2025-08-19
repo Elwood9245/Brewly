@@ -18,10 +18,6 @@ public class BrewLogRequest {
     @NotNull(message = "Bean ID is required")
     private UUID beanId;
     
-    @NotBlank(message = "Bean name is required")
-    @Size(max = 100, message = "Bean name must be less than 100 characters")
-    private String beanName;
-    
     @Size(max = 50, message = "Method must be less than 50 characters")
     private String method;
     

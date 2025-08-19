@@ -27,19 +27,7 @@
         <div v-if="errors.beanId" class="error-msg">{{ errors.beanId }}</div>
       </div>
 
-      <!-- Bean Name (auto-filled but editable) -->
-      <div class="form-group">
-        <label for="bean-name">Bean Name<span class="required">*</span></label>
-        <input 
-          id="bean-name" 
-          v-model="form.beanName" 
-          type="text" 
-          required
-          placeholder="Bean name"
-          :class="{ error: errors.beanName }"
-        >
-        <div v-if="errors.beanName" class="error-msg">{{ errors.beanName }}</div>
-      </div>
+
 
       <!-- Brewing Method -->
       <div class="form-group">
@@ -245,7 +233,6 @@ const isEditing = computed(() => !!brewLogId.value)
 
 const form = reactive({
   beanId: '',
-  beanName: '',
   method: '',
   grindSize: '',
   beanWeightGram: null,
@@ -267,7 +254,6 @@ const formData = reactive({
 
 const errors = reactive({
   beanId: '',
-  beanName: '',
   method: '',
   grindSize: '',
   beanWeightGram: '',
@@ -297,12 +283,7 @@ function validate() {
     errors.beanId = 'Bean selection is required.'
   }
 
-  // Bean Name: required, ≤100 chars
-  if (!form.beanName || !form.beanName.trim()) {
-    errors.beanName = 'Bean name is required.'
-  } else if (form.beanName.length > 100) {
-    errors.beanName = 'Bean name must be 100 characters or less.'
-  }
+
 
   // Optional field validation
   if (form.method && form.method.length > 50) {
@@ -358,7 +339,6 @@ async function onSubmit() {
   try {
     const payload = {
       beanId: form.beanId,
-      beanName: form.beanName.trim(),
       method: form.method.trim() || null,
       grindSize: form.grindSize.trim() || null,
       beanWeightGram: form.beanWeightGram ? Number(form.beanWeightGram) : null,
@@ -403,7 +383,6 @@ async function onSubmit() {
 function resetForm() {
   Object.assign(form, {
     beanId: '',
-    beanName: '',
     method: '',
     grindSize: '',
     beanWeightGram: null,
@@ -430,10 +409,8 @@ const loadUserBeans = async () => {
 }
 
 const onBeanChange = () => {
-  const selectedBean = userBeans.value.find(bean => bean.id === form.beanId)
-  if (selectedBean) {
-    form.beanName = selectedBean.name
-  }
+  // Bean name is now automatically handled by the backend
+  // No need to set form.beanName anymore
 }
 
 const updateImportedRecipeSteps = () => {
@@ -458,7 +435,6 @@ onMounted(async () => {
       const brewLog = await getBrewLogById(brewLogId.value)
       Object.assign(form, {
         beanId: brewLog.beanId,
-        beanName: brewLog.beanName,
         method: brewLog.method || '',
         grindSize: brewLog.grindSize || '',
         beanWeightGram: brewLog.beanWeightGram,
