@@ -11,9 +11,12 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import java.time.Instant;
 import java.util.UUID;
 import java.math.BigDecimal;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -57,9 +60,6 @@ public class BrewLog {
     @Column(name = "taste_notes", columnDefinition = "text")
     private String tasteNotes;
 
-    @Column(name = "flavor_tags", columnDefinition = "text[]")
-    private String[] flavorTags;
-
     @Column(name = "rating", precision = 3, scale = 1)
     private BigDecimal rating;
 
@@ -73,7 +73,8 @@ public class BrewLog {
     private String importedRecipeMethod;
 
     @Column(name = "imported_recipe_steps", columnDefinition = "jsonb")
-    private String importedRecipeSteps;
+    @JdbcTypeCode(SqlTypes.JSON)
+    private List<String> importedRecipeSteps;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)

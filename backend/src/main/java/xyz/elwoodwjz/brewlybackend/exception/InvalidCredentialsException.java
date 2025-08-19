@@ -1,4 +1,4 @@
-package xyz.elwoodwjz.brewlybackend.config;
+package xyz.elwoodwjz.brewlybackend.exception;
 
 /**
  * Exception thrown when login credentials are invalid.

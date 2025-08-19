@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import xyz.elwoodwjz.brewlybackend.entity.User;
-import xyz.elwoodwjz.brewlybackend.config.InvalidCredentialsException;
+import xyz.elwoodwjz.brewlybackend.exception.InvalidCredentialsException;
 import xyz.elwoodwjz.brewlybackend.repository.UserRepository;
 import java.time.LocalDateTime;
 import java.util.Optional;

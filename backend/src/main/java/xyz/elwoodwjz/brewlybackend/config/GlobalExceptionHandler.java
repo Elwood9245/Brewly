@@ -19,7 +19,9 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
-import xyz.elwoodwjz.brewlybackend.config.InvalidCredentialsException;
+import xyz.elwoodwjz.brewlybackend.exception.InvalidCredentialsException;
+import xyz.elwoodwjz.brewlybackend.exception.ResourceNotFoundException;
+import xyz.elwoodwjz.brewlybackend.exception.UnauthorizedException;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -94,6 +96,38 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler imple
     }
 
     /**
+     * Maps ResourceNotFoundException to 404 Not Found.
+     */
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleResourceNotFound(ResourceNotFoundException ex,
+                                                               HttpServletRequest request) {
+        ErrorResponse body = new ErrorResponse(
+                Instant.now(),
+                HttpStatus.NOT_FOUND.value(),
+                HttpStatus.NOT_FOUND.getReasonPhrase(),
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        return new ResponseEntity<>(body, HttpStatus.NOT_FOUND);
+    }
+
+    /**
+     * Maps UnauthorizedException to 403 Forbidden.
+     */
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<ErrorResponse> handleUnauthorized(UnauthorizedException ex,
+                                                           HttpServletRequest request) {
+        ErrorResponse body = new ErrorResponse(
+                Instant.now(),
+                HttpStatus.FORBIDDEN.value(),
+                HttpStatus.FORBIDDEN.getReasonPhrase(),
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        return new ResponseEntity<>(body, HttpStatus.FORBIDDEN);
+    }
+
+    /**
      * Maps IllegalArgumentException (e.g. invalid registration inputs) to 400.
      */
     @ExceptionHandler(IllegalArgumentException.class)
@@ -132,11 +166,16 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler imple
      */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGeneral(Exception ex, HttpServletRequest request) {
+        String message = "An unexpected error occurred: " + ex.getMessage();
+        if (ex.getCause() != null) {
+            message += " (Caused by: " + ex.getCause().getMessage() + ")";
+        }
+        
         ErrorResponse body = new ErrorResponse(
                 Instant.now(),
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
-                "An unexpected error occurred",
+                message,
                 request.getRequestURI()
         );
         return new ResponseEntity<>(body, HttpStatus.INTERNAL_SERVER_ERROR);
