@@ -45,8 +45,26 @@ const router = createRouter({
       meta: { requiresAuth: true }
     },
     {
+      path: '/brewlogs',
+      name: 'brewlogs',
+      component: () => import('../views/BrewLogsView.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
       path: '/addbrew',
       name: 'addbrew',
+      component: () => import('../views/AddBrewView.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/brewlogs/:id',
+      name: 'brewlogdetail',
+      component: () => import('../views/BrewLogDetailView.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/brewlogs/:id/edit',
+      name: 'editbrew',
       component: () => import('../views/AddBrewView.vue'),
       meta: { requiresAuth: true }
     },
@@ -81,30 +99,20 @@ router.beforeEach(async (to, from, next) => {
   // Check authentication status
   const isAuthenticated = await auth.checkAuthStatus()
   
-  console.log('Route guard:', { 
-    to: to.name, 
-    requiresAuth: to.meta.requiresAuth, 
-    hideForAuth: to.meta.hideForAuth, 
-    isAuthenticated 
-  })
-  
   // If route requires authentication and user is not authenticated
   if (to.meta.requiresAuth && !isAuthenticated) {
-    console.log('Redirecting to login - authentication required')
     next('/login')
     return
   }
   
   // If user is authenticated and trying to access login/register pages
   if (to.meta.hideForAuth && isAuthenticated) {
-    console.log('Redirecting to home - user already authenticated')
     next('/')
     return
   }
   
   // If no specific route meta and user is not authenticated, redirect to login
   if (!to.meta.hideForAuth && !to.meta.requiresAuth && !isAuthenticated) {
-    console.log('Redirecting to login - default for unauthenticated users')
     next('/login')
     return
   }

@@ -1,5 +1,5 @@
 <template>
-  <div class="bean-form">
+  <div class="card px-5 py-4 m-4">
     <h2>{{ isEdit ? 'Edit Bean' : 'Add New Bean' }}</h2>
     <div v-if="submitError" class="error-banner">{{ submitError }}</div>
     <div v-if="submitSuccess" class="success-banner">{{ submitSuccess }}</div>
@@ -167,7 +167,7 @@
 <script setup>
 import { ref, reactive, computed, watch, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { beanAPI, beanUtils, BLEND_TYPES, ROAST_LEVELS } from '../api/beans.js'
+import { createBean, updateBean, getBeanById, beanUtils, BLEND_TYPES, ROAST_LEVELS } from '../api/beans.js'
 import { useAuthStore } from '../stores/auth.js'
 
 const route = useRoute()
@@ -293,10 +293,10 @@ async function onSubmit() {
     }
 
     if (isEdit.value) {
-      await beanAPI.updateBean(beanId.value, payload)
+      await updateBean(beanId.value, payload)
       submitSuccess.value = 'Bean updated successfully.'
     } else {
-      await beanAPI.createBean(payload)
+      await createBean(payload)
       submitSuccess.value = 'Bean added successfully.'
       // Clear form after successful add
       resetForm()
@@ -340,7 +340,7 @@ function resetForm() {
 onMounted(async () => {
   if (isEdit.value) {
     try {
-      const bean = await beanAPI.getBeanById(beanId.value)
+      const bean = await getBeanById(beanId.value)
       form.name = bean.name || ''
       form.origin = bean.origin || ''
       form.blend = bean.blend || 'SINGLE_ORIGIN'
@@ -361,14 +361,6 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.bean-form {
-  max-width: 400px;
-  margin: 2rem auto;
-  padding: 2rem 2.5rem;
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-}
 h2 {
   text-align: center;
   margin-bottom: 1.5rem;
@@ -389,7 +381,7 @@ textarea {
   width: 100%;
   padding: 0.5rem 0.7rem;
   border: 1px solid #ccc;
-  border-radius: 6px;
+  border-radius: 20px;
   font-size: 1rem;
   transition: border 0.2s;
   font-family: inherit;

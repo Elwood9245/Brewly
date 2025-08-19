@@ -24,7 +24,7 @@
               type="button"
             >
               <i class="bi bi-check-circle-fill"></i>
-              <span>Active Beans</span>
+              <span>Active</span>
               <span>{{ activeBeans.length }}</span>
             </button>
             <button 
@@ -34,7 +34,7 @@
               type="button"
             >
               <i class="bi bi-pause-circle-fill"></i>
-              <span>Inactive Beans</span>
+              <span>Inactive</span>
               <span>{{ inactiveBeans.length }}</span>
             </button>
           </div>
@@ -119,7 +119,7 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { beanAPI } from '../api/beans.js'
+import { deleteBean, getBeansByUserId } from '../api/beans.js'
 import { useAuthStore } from '../stores/auth.js'
 import BeanCard from '../components/BeanCard.vue'
 
@@ -167,7 +167,7 @@ async function confirmDelete() {
   if (!beanToDelete.value) return
   errorMsg.value = ''
   try {
-    await beanAPI.deleteBean(beanToDelete.value.id)
+    await deleteBean(beanToDelete.value.id)
     await fetchBeans()
   } catch (e) {
     errorMsg.value = e.response?.data?.message || 'Failed to delete bean. Please try again.'
@@ -193,7 +193,7 @@ async function fetchBeans() {
   
   try {
     // Fetch user-specific beans
-    beans.value = await beanAPI.getBeansByUserId(auth.currentUser.value.id)
+    beans.value = await getBeansByUserId(auth.currentUser.value.id)
   } catch (e) {
     beans.value = []
     errorMsg.value = e.response?.data?.message || 'Failed to load beans. Please try again.'

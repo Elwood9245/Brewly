@@ -1,7 +1,9 @@
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth.js'
 
+const router = useRouter()
 const auth = useAuthStore()
 
 // Empty data arrays - will be populated with real data from API
@@ -17,12 +19,10 @@ const stats = ref({
 
 onMounted(() => {
   // In a real app, fetch user data here
-  console.log('Home view mounted')
 })
 
 const navigateToAddBrew = () => {
-  // TODO: Navigate to add brew page
-  console.log('Navigate to add brew')
+  router.push('/addbrew')
 }
 
 const likeRecipe = (recipeId) => {
@@ -92,7 +92,7 @@ const likeRecipe = (recipeId) => {
     <div class="section mb-4">
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h2 class="h5 mb-0">Recent Brews</h2>
-        <a href="#" class="text-decoration-none small" v-if="brewLogs.length > 0">View All</a>
+        <router-link to="/brewlogs" class="text-decoration-none small" v-if="brewLogs.length > 0">View All</router-link>
       </div>
       
       <div class="brew-list" v-if="brewLogs.length > 0">
@@ -175,37 +175,6 @@ const likeRecipe = (recipeId) => {
           <p class="mb-3">Discover amazing coffee recipes from the community!</p>
           <button class="btn btn-outline-primary">
             <i class="bi bi-search me-1"></i>Explore Recipes
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Quick Actions -->
-    <div class="section">
-      <h2 class="h5 mb-3">Quick Actions</h2>
-      <div class="row">
-        <div class="col-6 col-md-3 mb-2">
-          <button class="btn btn-outline-primary w-100 quick-action-btn">
-            <i class="bi bi-plus-circle mb-1 d-block"></i>
-            <small>Add Brew</small>
-          </button>
-        </div>
-        <div class="col-6 col-md-3 mb-2">
-          <button class="btn btn-outline-success w-100 quick-action-btn">
-            <i class="bi bi-journal-plus mb-1 d-block"></i>
-            <small>New Recipe</small>
-          </button>
-        </div>
-        <div class="col-6 col-md-3 mb-2">
-          <button class="btn btn-outline-info w-100 quick-action-btn">
-            <i class="bi bi-search mb-1 d-block"></i>
-            <small>Explore</small>
-          </button>
-        </div>
-        <div class="col-6 col-md-3 mb-2">
-          <button class="btn btn-outline-warning w-100 quick-action-btn">
-            <i class="bi bi-boxes mb-1 d-block"></i>
-            <small>Inventory</small>
           </button>
         </div>
       </div>
@@ -297,22 +266,6 @@ const likeRecipe = (recipeId) => {
   display: flex;
   align-items: center;
   gap: 0.25rem;
-}
-
-.quick-action-btn {
-  border-radius: 12px;
-  padding: 1rem 0.5rem;
-  text-align: center;
-  border-width: 2px;
-  transition: all 0.2s ease;
-}
-
-.quick-action-btn:hover {
-  transform: translateY(-1px);
-}
-
-.quick-action-btn i {
-  font-size: 1.25rem;
 }
 
 .section {

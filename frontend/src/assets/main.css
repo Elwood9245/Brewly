@@ -103,6 +103,29 @@ textarea.error {
   color: white;
 }
 
+/* Secondary button styling to match project theme */
+.btn-secondary {
+  background: #f8f9fa;
+  border: 2px solid #6c757d;
+  border-radius: 50px;
+  color: #6c757d;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+  background: #6c757d;
+  border-color: #6c757d;
+  color: white;
+  box-shadow: 0 4px 8px rgba(108, 117, 125, 0.3);
+}
+
+.btn-secondary:disabled {
+  background: #e9ecef;
+  border-color: #dee2e6;
+  color: #adb5bd;
+}
+
 /* Button outline variants */
 .btn-outline-primary {
   border: 2px solid #2d2d2d;

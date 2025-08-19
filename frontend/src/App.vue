@@ -41,8 +41,11 @@
                             <router-link to="/addbrew" class="btn btn-primary btn-sm">
                                 <i class="bi bi-plus-circle me-1"></i>Add New Brew
                             </router-link>
-                            <a href="#" class="btn btn-outline-primary btn-sm">
-                                <i class="bi bi-plus-circle me-1"></i>Create Recipe
+                            <router-link to="/brewlogs" class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-cup-hot me-1"></i>Brew Logs
+                            </router-link>
+                            <a href="#" class="btn btn-outline-secondary btn-sm">
+                                <i class="bi bi-journal-plus me-1"></i>Create Recipe
                             </a>
                         </div>
                     </div>
@@ -88,6 +91,8 @@
                     <div class="d-flex justify-content-between w-100">
                         <router-link to="/" class="nav-link text-center flex-fill"><i
                                 class="bi bi-house fs-4"></i><br><small>Home</small></router-link>
+                        <router-link to="/brewlogs" class="nav-link text-center flex-fill"><i
+                                class="bi bi-cup-hot fs-4"></i><br><small>Brew Logs</small></router-link>
                         <router-link to="/explore" class="nav-link text-center flex-fill"><i
                                 class="bi bi-compass fs-4"></i><br><small>Explore</small></router-link>
                         <router-link to="/inventory" class="nav-link text-center flex-fill"><i
