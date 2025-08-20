@@ -2,12 +2,14 @@ package xyz.elwoodwjz.brewlybackend.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 import xyz.elwoodwjz.brewlybackend.dto.bean.BeanRequest;
 import xyz.elwoodwjz.brewlybackend.dto.bean.BeanResponse;
 import xyz.elwoodwjz.brewlybackend.entity.Bean;
 import xyz.elwoodwjz.brewlybackend.service.BeanService;
+import xyz.elwoodwjz.brewlybackend.security.CustomUserDetailsService.CustomUserPrincipal;
 
 import java.util.List;
 import java.util.Optional;
@@ -24,6 +26,13 @@ public class BeanController {
         this.beanService = beanService;
     }
 
+    private UUID getUserIdFromAuthentication(Authentication authentication) {
+        if (authentication != null && authentication.getPrincipal() instanceof CustomUserPrincipal) {
+            return ((CustomUserPrincipal) authentication.getPrincipal()).getUser().getId();
+        }
+        return null;
+    }
+
     @GetMapping
     public ResponseEntity<List<BeanResponse>> getAllBeans() {
         List<Bean> beans = beanService.getAllBeans();
@@ -33,8 +42,9 @@ public class BeanController {
         return ResponseEntity.ok(responses);
     }
 
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<List<BeanResponse>> getBeansByUserId(@PathVariable UUID userId) {
+    @GetMapping("/user")
+    public ResponseEntity<List<BeanResponse>> getUserBeans(Authentication authentication) {
+        UUID userId = getUserIdFromAuthentication(authentication);
         List<Bean> beans = beanService.getBeansByUserId(userId);
         List<BeanResponse> responses = beans.stream()
                 .map(this::mapToResponse)
@@ -52,17 +62,23 @@ public class BeanController {
     }
 
     @PostMapping
-    public ResponseEntity<BeanResponse> createBean(@Valid @RequestBody BeanRequest request) {
-        Bean bean = mapToEntity(request);
+    public ResponseEntity<BeanResponse> createBean(@Valid @RequestBody BeanRequest request, Authentication authentication) {
+        UUID userId = getUserIdFromAuthentication(authentication);
+        Bean bean = mapToEntity(request, userId);
         Bean savedBean = beanService.createBean(bean);
         return ResponseEntity.status(HttpStatus.CREATED).body(mapToResponse(savedBean));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<BeanResponse> updateBean(@PathVariable UUID id, @Valid @RequestBody BeanRequest request) {
+    public ResponseEntity<BeanResponse> updateBean(@PathVariable UUID id, @Valid @RequestBody BeanRequest request, Authentication authentication) {
+        UUID userId = getUserIdFromAuthentication(authentication);
         Optional<Bean> existingBean = beanService.getBeanById(id);
         if (existingBean.isPresent()) {
-            Bean bean = mapToEntity(request);
+            // Check if the bean belongs to the authenticated user
+            if (!existingBean.get().getUserId().equals(userId)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+            Bean bean = mapToEntity(request, userId);
             bean.setId(id);
             Bean updatedBean = beanService.updateBean(bean);
             return ResponseEntity.ok(mapToResponse(updatedBean));
@@ -71,9 +87,14 @@ public class BeanController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteBean(@PathVariable UUID id) {
+    public ResponseEntity<Void> deleteBean(@PathVariable UUID id, Authentication authentication) {
+        UUID userId = getUserIdFromAuthentication(authentication);
         Optional<Bean> existingBean = beanService.getBeanById(id);
         if (existingBean.isPresent()) {
+            // Check if the bean belongs to the authenticated user
+            if (!existingBean.get().getUserId().equals(userId)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
             beanService.deleteBean(id);
             return ResponseEntity.noContent().build();
         }
@@ -101,9 +122,9 @@ public class BeanController {
         return response;
     }
 
-    private Bean mapToEntity(BeanRequest request) {
+    private Bean mapToEntity(BeanRequest request, UUID userId) {
         return Bean.builder()
-                .userId(UUID.fromString(request.getUserId()))
+                .userId(userId)
                 .name(request.getName())
                 .origin(request.getOrigin())
                 .blend(request.getBlend())

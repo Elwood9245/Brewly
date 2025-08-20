@@ -9,11 +9,6 @@ import xyz.elwoodwjz.brewlybackend.entity.RoastLevel;
 
 @Data
 public class BeanRequest {
-    @NotNull(message = "User ID is required")
-    @Pattern(regexp = "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", 
-             message = "User ID must be a valid UUID")
-    private String userId;
-    
     @NotBlank(message = "Bean name is required")
     @Size(max = 100, message = "Bean name must not exceed 100 characters")
     private String name;

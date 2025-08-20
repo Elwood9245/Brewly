@@ -4,12 +4,11 @@ export const BLEND_TYPES = ['SINGLE_ORIGIN', 'BLEND', 'UNKNOWN']
 export const ROAST_LEVELS = ['POUR_OVER', 'ESPRESSO', 'OMNI']
 
 /**
- * Get beans for a specific user
- * @param {string} userId - User ID
+ * Get beans for the current authenticated user
  * @returns {Promise<Array>} Array of beans
  */
-export const getBeansByUserId = async (userId) => {
-  const response = await apiClient.get(`/beans/user/${userId}`)
+export const getUserBeans = async () => {
+  const response = await apiClient.get('/beans/user')
   return response.data
 }
 
@@ -54,10 +53,10 @@ export const deleteBean = async (id) => {
 }
 
 /**
- * Get beans for the current authenticated user
- * @returns {Promise<Array>} Array of beans
+ * Get all beans (public endpoint)
+ * @returns {Promise<Array>} Array of all beans
  */
-export const getUserBeans = async () => {
+export const getAllBeans = async () => {
   const response = await apiClient.get('/beans')
   return response.data
 }

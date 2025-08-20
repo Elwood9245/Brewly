@@ -277,7 +277,6 @@ async function onSubmit() {
   submitting.value = true
   try {
     const payload = {
-      userId: auth.currentUser.value?.id || null,
       name: form.name.trim(),
       origin: form.origin.trim() || null,
       blend: form.blend,

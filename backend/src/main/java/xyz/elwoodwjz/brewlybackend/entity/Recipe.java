@@ -14,7 +14,14 @@ import lombok.Builder;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import xyz.elwoodwjz.brewlybackend.dto.recipe.RecipeStep;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -43,7 +50,34 @@ public class Recipe {
     private String description;
 
     @Column(columnDefinition = "jsonb", nullable = false)
+    @JdbcTypeCode(SqlTypes.JSON)
     private String steps;
+    
+    // Helper methods for JSON serialization
+    public List<RecipeStep> getStepsAsList() {
+        if (steps == null || steps.isEmpty()) {
+            return List.of();
+        }
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            return mapper.readValue(steps, new TypeReference<List<RecipeStep>>() {});
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Failed to deserialize steps", e);
+        }
+    }
+    
+    public void setStepsFromList(List<RecipeStep> stepsList) {
+        if (stepsList == null) {
+            this.steps = "[]";
+            return;
+        }
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            this.steps = mapper.writeValueAsString(stepsList);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Failed to serialize steps", e);
+        }
+    }
 
     @Builder.Default
     @Enumerated(EnumType.STRING)

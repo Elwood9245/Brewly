@@ -86,6 +86,7 @@ public class SecurityConfig {
                 // Public endpoints
                 .requestMatchers("/api/auth/login", "/api/auth/register").permitAll()
                 .requestMatchers("/actuator/health").permitAll()
+                .requestMatchers("/api/recipes/public/**").permitAll()
                 // All other endpoints require authentication
                 .anyRequest().authenticated()
             )

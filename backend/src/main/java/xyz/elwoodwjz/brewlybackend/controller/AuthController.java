@@ -12,8 +12,9 @@ import xyz.elwoodwjz.brewlybackend.dto.user.UserResponse;
 import xyz.elwoodwjz.brewlybackend.entity.User;
 import xyz.elwoodwjz.brewlybackend.service.AuthService;
 import xyz.elwoodwjz.brewlybackend.security.JwtUtil;
-import xyz.elwoodwjz.brewlybackend.security.CustomUserDetailsService;
+import xyz.elwoodwjz.brewlybackend.security.CustomUserDetailsService.CustomUserPrincipal;
 
+import java.util.UUID;
 
 /**
  * Controller for handling authentication-related endpoints.
@@ -31,7 +32,15 @@ public class AuthController {
     public AuthController(AuthService authService, JwtUtil jwtUtil) {
         this.authService = authService;
         this.jwtUtil = jwtUtil;
-    }   
+    }
+
+    // Helper method to get user from authentication
+    private User getUserFromAuthentication(Authentication authentication) {
+        if (authentication != null && authentication.getPrincipal() instanceof CustomUserPrincipal) {
+            return ((CustomUserPrincipal) authentication.getPrincipal()).getUser();
+        }
+        return null;
+    }
 
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
@@ -51,9 +60,7 @@ public class AuthController {
 
     @GetMapping("/me")
     public ResponseEntity<UserResponse> getCurrentUser(Authentication authentication) {
-        CustomUserDetailsService.CustomUserPrincipal userPrincipal = 
-            (CustomUserDetailsService.CustomUserPrincipal) authentication.getPrincipal();
-        User user = userPrincipal.getUser();
+        User user = getUserFromAuthentication(authentication);
         UserResponse userResponse = mapToUserResponse(user);
         return ResponseEntity.ok(userResponse);
     }
