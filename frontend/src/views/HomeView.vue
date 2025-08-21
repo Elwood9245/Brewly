@@ -2,6 +2,8 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth.js'
+import { getBrewLogStatistics } from '../api/brewlogs.js'
+import { getUserBrewLogs } from '../api/brewlogs.js'
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -17,8 +19,52 @@ const stats = ref({
   streakDays: 0
 })
 
+const loading = ref(false)
+
+const loadStatistics = async () => {
+  loading.value = true
+  try {
+    const response = await getBrewLogStatistics()
+    if (response) {
+      stats.value = {
+        totalBrews: response.totalBrewLogs || 0,
+        favoriteMethod: response.methodStatistics && response.methodStatistics.length > 0 
+          ? response.methodStatistics[0].method 
+          : null,
+        averageRating: response.averageRating || 0,
+        streakDays: response.totalBrewsThisWeek || 0
+      }
+    }
+  } catch (err) {
+    console.error('Error loading statistics:', err)
+  } finally {
+    loading.value = false
+  }
+}
+
+const loadRecentBrews = async () => {
+  try {
+    const response = await getUserBrewLogs(0, 3) // Get first 3 brews
+    if (response && response.brewLogs) {
+      brewLogs.value = response.brewLogs
+    }
+  } catch (err) {
+    console.error('Error loading recent brews:', err)
+  }
+}
+
+const formatDate = (dateString) => {
+  if (!dateString) return ''
+  const date = new Date(dateString)
+  return date.toLocaleDateString('en-US', { 
+    month: 'short', 
+    day: 'numeric' 
+  })
+}
+
 onMounted(() => {
-  // In a real app, fetch user data here
+  loadStatistics()
+  loadRecentBrews()
 })
 
 const navigateToAddBrew = () => {
@@ -30,6 +76,14 @@ const likeRecipe = (recipeId) => {
   if (recipe) {
     recipe.likes++
   }
+}
+
+const navigateToMyRecipes = () => {
+  router.push('/recipes')
+}
+
+const navigateToExplore = () => {
+  router.push('/explore')
 }
 </script>
 
@@ -53,39 +107,49 @@ const likeRecipe = (recipeId) => {
     <!-- Stats Cards -->
     <div class="row mb-4">
       <div class="col-6 col-md-3 mb-3">
-        <div class="card stat-card text-center">
-          <div class="card-body p-3">
-            <div class="stat-number text-primary">{{ stats.totalBrews }}</div>
-            <div class="stat-label">Total Brews</div>
-          </div>
-        </div>
-      </div>
-      <div class="col-6 col-md-3 mb-3">
-        <div class="card stat-card text-center">
-          <div class="card-body p-3">
-            <div class="stat-number text-success">{{ stats.averageRating }}</div>
-            <div class="stat-label">Avg Rating</div>
-          </div>
-        </div>
-      </div>
-      <div class="col-6 col-md-3 mb-3">
-        <div class="card stat-card text-center">
-          <div class="card-body p-3">
-            <div class="stat-number text-warning">{{ stats.streakDays }}</div>
-            <div class="stat-label">Day Streak</div>
-          </div>
-        </div>
-      </div>
-              <div class="col-6 col-md-3 mb-3">
-          <div class="card stat-card text-center">
-            <div class="card-body p-3">
-              <div class="stat-icon text-info">
-                <i class="bi bi-cup-hot fs-4"></i>
-              </div>
-              <div class="stat-label small">{{ stats.favoriteMethod || 'No preference yet' }}</div>
+        <div class="card text-center">
+          <div class="card-body p-2">
+            <div class="mb-2">
+              <i class="bi bi-graph-up fs-1 text-secondary"></i>
             </div>
+            <div class="h5 mb-1 fw-bold">{{ stats.totalBrews }}</div>
+            <div class="small text-secondary">Total Brews</div>
           </div>
         </div>
+      </div>
+      <div class="col-6 col-md-3 mb-3">
+        <div class="card text-center">
+          <div class="card-body p-2">
+            <div class="mb-2">
+              <i class="bi bi-star fs-1 text-secondary"></i>
+            </div>
+            <div class="h5 mb-1 fw-bold">{{ stats.averageRating.toFixed(1) }}</div>
+            <div class="small text-secondary">Avg Rating</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3 mb-3">
+        <div class="card text-center">
+          <div class="card-body p-2">
+            <div class="mb-2">
+              <i class="bi bi-calendar-week fs-1 text-secondary"></i>
+            </div>
+            <div class="h5 mb-1 fw-bold">{{ stats.streakDays }}</div>
+            <div class="small text-secondary">This Week</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3 mb-3">
+        <div class="card text-center">
+          <div class="card-body p-2">
+            <div class="mb-2">
+              <i class="bi bi-cup-hot fs-1 text-secondary"></i>
+            </div>
+            <div class="h5 mb-1 fw-bold">{{ stats.favoriteMethod || 'None' }}</div>
+            <div class="small text-secondary">Top Method</div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Recent Brews -->
@@ -95,39 +159,30 @@ const likeRecipe = (recipeId) => {
         <router-link to="/brewlogs" class="text-decoration-none small" v-if="brewLogs.length > 0">View All</router-link>
       </div>
       
-      <div class="brew-list" v-if="brewLogs.length > 0">
-        <div 
-          v-for="brew in brewLogs" 
-          :key="brew.id"
-          class="card mb-3 brew-card"
-        >
-          <div class="card-body p-3">
-            <div class="row align-items-center">
-              <div class="col">
-                <h6 class="mb-1">{{ brew.method }}</h6>
-                <p class="mb-1 small">{{ brew.bean }}</p>
-                <p class="mb-0 small">{{ brew.notes }}</p>
-              </div>
-              <div class="col-auto text-end">
-                <div class="rating mb-1">
-                  <span class="text-warning">
-                    <i class="bi bi-star-fill"></i>
-                  </span>
-                  <span class="small">{{ brew.rating }}</span>
-                </div>
-                <div class="small">{{ brew.time }}</div>
+      <div class="card" v-if="brewLogs.length > 0">
+        <div class="card-body">
+          <div 
+            v-for="(brew, index) in brewLogs" 
+            :key="brew.id"
+            class="d-flex justify-content-between align-items-center mb-3"
+            :class="{ 'mb-0': index === brewLogs.length - 1 }"
+          >
+            <div>
+              <div class="fw-bold">{{ brew.beanName }}</div>
+              <div class="text-secondary small">
+                {{ brew.method }}<span v-if="brew.rating"> · {{ brew.rating }}/10</span> · {{ formatDate(brew.createdAt) }}
               </div>
             </div>
           </div>
         </div>
       </div>
       
-      <!-- state for brews -->
+      <!-- Empty state for brews -->
       <div v-else class="card">
         <div class="card-body text-center py-5">
-          <i class="bi bi-cup-hot fs-1 mb-3"></i>
+          <i class="bi bi-cup-hot fs-1 mb-3 text-secondary"></i>
           <h5 class="mb-2">No brews yet</h5>
-          <p class="mb-3">Start your coffee journey by logging your first brew!</p>
+          <p class="mb-3 text-secondary">Start your coffee journey by logging your first brew!</p>
           <button class="btn btn-primary" @click="navigateToAddBrew">
             <i class="bi bi-plus-circle me-1"></i>Add Your First Brew
           </button>
@@ -139,7 +194,11 @@ const likeRecipe = (recipeId) => {
     <div class="section mb-4">
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h2 class="h5 mb-0">Popular Recipes</h2>
-        <a href="#" class="text-decoration-none small" v-if="recentRecipes.length > 0">Explore More</a>
+        <div class="d-flex gap-2" v-if="recentRecipes.length > 0">
+          <router-link to="/explore" class="text-decoration-none small">Explore More</router-link>
+          <span class="text-muted">|</span>
+          <router-link to="/recipes" class="text-decoration-none small">My Recipes</router-link>
+        </div>
       </div>
       
       <div class="row" v-if="recentRecipes.length > 0">
@@ -173,9 +232,14 @@ const likeRecipe = (recipeId) => {
           <i class="bi bi-journal-bookmark fs-1 mb-3"></i>
           <h5 class="mb-2">No recipes to explore yet</h5>
           <p class="mb-3">Discover amazing coffee recipes from the community!</p>
-          <button class="btn btn-outline-primary">
-            <i class="bi bi-search me-1"></i>Explore Recipes
-          </button>
+          <div class="d-flex gap-2 justify-content-center">
+            <button class="btn btn-outline-primary" @click="navigateToExplore">
+              <i class="bi bi-search me-1"></i>Explore Recipes
+            </button>
+            <button class="btn btn-primary" @click="navigateToMyRecipes">
+              <i class="bi bi-journal-text me-1"></i>My Recipes
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -201,8 +265,6 @@ const likeRecipe = (recipeId) => {
   font-weight: 700;
 }
 
-
-
 .stat-card {
   border: none;
   border-radius: 15px;
@@ -225,22 +287,6 @@ const likeRecipe = (recipeId) => {
   font-size: 0.75rem;
   color: #495057;
   margin-top: 0.25rem;
-}
-
-.stat-icon {
-  line-height: 1;
-}
-
-.brew-card {
-  border: none;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  transition: transform 0.2s ease;
-}
-
-.brew-card:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
 
 .recipe-card {

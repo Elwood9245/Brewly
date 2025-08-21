@@ -21,7 +21,7 @@ brewly/
 - **Brew Timer Assistant**: Customisable step timer for different brew methods
 - **Data Visualisation**: Charts showing brew frequency, bean usage, flavour correlations
 - **AI Assistant**: Retrieval-Augmented Generation (RAG) for personalised brewing advice
-- **Social Features**: Follow users, comment, like, and interact with the community
+- **Social Features**: Comment, like, and interact with the community
 
 ### Authentication
 - Local registration and login (username/email + password)

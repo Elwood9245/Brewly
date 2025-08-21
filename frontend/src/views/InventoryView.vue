@@ -119,7 +119,7 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { deleteBean, getBeansByUserId } from '../api/beans.js'
+import { deleteBean, getUserBeans } from '../api/beans.js'
 import { useAuthStore } from '../stores/auth.js'
 import BeanCard from '../components/BeanCard.vue'
 
@@ -180,11 +180,11 @@ async function fetchBeans() {
   loading.value = true
   errorMsg.value = ''
   
-  // Check if user is authenticated and has user info
-  if (!auth.isAuthenticated.value || !auth.currentUser.value?.id) {
+  // Check if user is authenticated
+  if (!auth.isAuthenticated.value) {
     // Try to refresh auth status first
     const isAuth = await auth.checkAuthStatus()
-    if (!isAuth || !auth.currentUser.value?.id) {
+    if (!isAuth) {
       errorMsg.value = 'Please log in to view your bean inventory.'
       loading.value = false
       return
@@ -193,7 +193,7 @@ async function fetchBeans() {
   
   try {
     // Fetch user-specific beans
-    beans.value = await getBeansByUserId(auth.currentUser.value.id)
+    beans.value = await getUserBeans()
   } catch (e) {
     beans.value = []
     errorMsg.value = e.response?.data?.message || 'Failed to load beans. Please try again.'

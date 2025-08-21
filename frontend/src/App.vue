@@ -38,15 +38,21 @@
                     <div class="mb-3">
                         <h6 class="mb-2">Quick Actions</h6>
                         <div class="d-grid gap-2">
-                            <router-link to="/addbrew" class="btn btn-primary btn-sm">
+                            <button @click="navigateToAddBrew" class="btn btn-primary" data-bs-dismiss="offcanvas">
                                 <i class="bi bi-plus-circle me-1"></i>Add New Brew
-                            </router-link>
-                            <router-link to="/brewlogs" class="btn btn-outline-primary btn-sm">
+                            </button>
+                            <button @click="navigateToBrewLogs" class="btn btn-primary" data-bs-dismiss="offcanvas">
                                 <i class="bi bi-cup-hot me-1"></i>Brew Logs
-                            </router-link>
-                            <a href="#" class="btn btn-outline-secondary btn-sm">
+                            </button>
+                            <button @click="navigateToStatistics" class="btn btn-primary" data-bs-dismiss="offcanvas">
+                                <i class="bi bi-graph-up me-1"></i>Statistics
+                            </button>
+                            <button @click="navigateToCreateRecipe" class="btn btn-primary" data-bs-dismiss="offcanvas">
                                 <i class="bi bi-journal-plus me-1"></i>Create Recipe
-                            </a>
+                            </button>
+                            <button @click="navigateToRecipes" class="btn btn-primary" data-bs-dismiss="offcanvas">
+                                <i class="bi bi-journal-text me-1"></i>My Recipes
+                            </button>
                         </div>
                     </div>
 
@@ -95,13 +101,15 @@
                                 class="bi bi-cup-hot fs-4"></i><br><small>Brew Logs</small></router-link>
                         <router-link to="/explore" class="nav-link text-center flex-fill"><i
                                 class="bi bi-compass fs-4"></i><br><small>Explore</small></router-link>
+                        <router-link to="/recipes" class="nav-link text-center flex-fill"><i
+                                class="bi bi-journal-text fs-4"></i><br><small>Recipes</small></router-link>
                         <router-link to="/inventory" class="nav-link text-center flex-fill"><i
                                 class="bi bi-boxes fs-4"></i><br><small>Inventory</small></router-link>
-                        <router-link to="/ai" class="nav-link text-center flex-fill"><i
-                                class="bi bi-robot fs-4"></i><br><small>AI</small></router-link>
                     </div>
                 </div>
             </nav>
+
+
         </div>
 
         <!-- Fallback for unauthenticated users not on auth pages -->
@@ -149,6 +157,27 @@ const userInitial = computed(() => {
 const handleLogout = () => {
     auth.logout()
     router.push('/login')
+}
+
+// Navigation functions
+const navigateToAddBrew = () => {
+    router.push('/addbrew')
+}
+
+const navigateToBrewLogs = () => {
+    router.push('/brewlogs')
+}
+
+const navigateToStatistics = () => {
+    router.push('/statistics')
+}
+
+const navigateToCreateRecipe = () => {
+    router.push('/recipes/create')
+}
+
+const navigateToRecipes = () => {
+    router.push('/recipes')
 }
 </script>
 

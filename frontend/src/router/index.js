@@ -45,6 +45,12 @@ const router = createRouter({
       meta: { requiresAuth: true }
     },
     {
+      path: '/statistics',
+      name: 'statistics',
+      component: () => import('../views/StatisticsView.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
       path: '/brewlogs',
       name: 'brewlogs',
       component: () => import('../views/BrewLogsView.vue'),
@@ -78,6 +84,31 @@ const router = createRouter({
       path: '/beans/:id/edit',
       name: 'editbean',
       component: () => import('../views/BeanForm.vue'),
+      meta: { requiresAuth: true }
+    },
+    // Recipe routes
+    {
+      path: '/recipes',
+      name: 'recipes',
+      component: () => import('../views/RecipesView.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/recipes/create',
+      name: 'createrecipe',
+      component: () => import('../views/RecipeCreateEditView.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/recipes/:id',
+      name: 'recipedetail',
+      component: () => import('../views/RecipeDetailView.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/recipes/:id/edit',
+      name: 'editrecipe',
+      component: () => import('../views/RecipeCreateEditView.vue'),
       meta: { requiresAuth: true }
     },
     // Catch all route - redirect to login if not authenticated, home if authenticated

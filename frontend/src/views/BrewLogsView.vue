@@ -6,9 +6,6 @@
         <div class="d-flex justify-content-between align-items-center">
           <h1 class="h3 mb-0">Brew Logs</h1>
           <div class="d-flex gap-2">
-            <button @click="showStatistics = true" class="btn btn-outline-primary">
-              <i class="bi bi-graph-up me-2"></i>Statistics
-            </button>
             <router-link to="/addbrew" class="btn btn-primary">
               <i class="bi bi-plus-circle me-2"></i>Add Brew
             </router-link>
@@ -110,19 +107,12 @@
       </div>
     </div>
   </div>
-
-  <!-- Statistics Modal -->
-  <BrewLogStatistics 
-    v-if="showStatistics"
-    @close="showStatistics = false"
-  />
 </template>
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { getUserBrewLogs, deleteBrewLog } from '../api/brewlogs.js'
-import BrewLogStatistics from '../components/BrewLogStatistics.vue'
 import BrewLogCard from '../components/BrewLogCard.vue'
 
 const router = useRouter()
@@ -136,8 +126,6 @@ const pageSize = ref(10)
 // Delete confirmation state
 const showDeleteConfirm = ref(false)
 const brewLogToDelete = ref(null)
-
-const showStatistics = ref(false)
 
 const visiblePages = computed(() => {
   const pages = []

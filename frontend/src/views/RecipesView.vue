@@ -5,62 +5,12 @@
       <div class="col-12">
         <div class="d-flex justify-content-between align-items-center">
           <div>
-            <h1 class="h3 mb-0">Explore Recipes</h1>
+            <h1 class="h3 mb-0">My Recipes</h1>
           </div>
           <div class="d-flex gap-2">
             <router-link to="/recipes/create" class="btn btn-primary">
               <i class="bi bi-plus-circle me-2"></i>Create Recipe
             </router-link>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Search and Filter Section -->
-    <div class="row mb-4">
-      <div class="col-12">
-        <div class="card">
-          <div class="card-body">
-            <div class="row g-3">
-              <div class="col-md-6">
-                <div class="input-group">
-                  <input 
-                    v-model="searchKeyword"
-                    type="text" 
-                    class="form-control" 
-                    placeholder="Search recipes..."
-                    @keyup.enter="searchRecipes"
-                  >
-                  <button 
-                    @click="searchRecipes"
-                    class="btn btn-outline-secondary" 
-                    type="button"
-                  >
-                    <i class="bi bi-search"></i>
-                  </button>
-                </div>
-              </div>
-              <div class="col-md-3">
-                <select v-model="selectedMethod" class="form-select" @change="filterByMethod">
-                  <option value="">All Methods</option>
-                  <option value="V60">V60</option>
-                  <option value="Chemex">Chemex</option>
-                  <option value="AeroPress">AeroPress</option>
-                  <option value="French Press">French Press</option>
-                  <option value="Moka Pot">Moka Pot</option>
-                  <option value="Espresso">Espresso</option>
-                  <option value="Pour Over">Pour Over</option>
-                  <option value="Cold Brew">Cold Brew</option>
-                  <option value="Other">Other</option>
-                </select>
-              </div>
-              <div class="col-md-3">
-                <select v-model="sortBy" class="form-select" @change="loadRecipes">
-                  <option value="latest">Latest</option>
-                  <option value="popular">Most Popular</option>
-                </select>
-              </div>
-            </div>
           </div>
         </div>
       </div>
@@ -88,13 +38,13 @@
       <div class="col-12">
         <div class="card">
           <div class="card-body text-center py-5">
-            <i class="bi bi-search fs-1 text-secondary mb-3"></i>
-            <h5 class="card-title">No recipes found</h5>
+            <i class="bi bi-journal-bookmark fs-1 text-secondary mb-3"></i>
+            <h5 class="card-title">No recipes yet</h5>
             <p class="card-text text-secondary">
-              {{ searchKeyword || selectedMethod ? 'Try adjusting your search criteria.' : 'Be the first to share a recipe!' }}
+              Start sharing your coffee brewing expertise by creating your first recipe.
             </p>
             <router-link to="/recipes/create" class="btn btn-primary">
-              <i class="bi bi-plus-circle me-2"></i>Create Recipe
+              <i class="bi bi-plus-circle me-2"></i>Create Your First Recipe
             </router-link>
           </div>
         </div>
@@ -110,9 +60,9 @@
       >
         <RecipeCard 
           :recipe="recipe"
-          :show-actions="false"
-          :show-like-button="true"
-          @like="handleLike"
+          :show-actions="true"
+          :show-like-button="false"
+          @delete="handleDeleteRecipe"
         />
       </div>
     </div>
@@ -164,14 +114,11 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import RecipeCard from '../components/RecipeCard.vue'
-import { 
-  getPublicRecipes, 
-  searchPublicRecipes, 
-  getPublicRecipesByMethod,
-  likeRecipe,
-  unlikeRecipe
-} from '../api/recipes.js'
+import { getUserRecipes, deleteRecipe } from '../api/recipes.js'
+
+const router = useRouter()
 
 const recipes = ref([])
 const loading = ref(false)
@@ -180,10 +127,6 @@ const currentPage = ref(0)
 const totalPages = ref(0)
 const totalElements = ref(0)
 const pageSize = 12
-
-const searchKeyword = ref('')
-const selectedMethod = ref('')
-const sortBy = ref('latest')
 
 const visiblePages = computed(() => {
   const pages = []
@@ -202,15 +145,7 @@ const loadRecipes = async (page = 0) => {
   error.value = null
 
   try {
-    let response
-    if (searchKeyword.value.trim()) {
-      response = await searchPublicRecipes(searchKeyword.value.trim(), page, pageSize)
-    } else if (selectedMethod.value) {
-      response = await getPublicRecipesByMethod(selectedMethod.value, page, pageSize)
-    } else {
-      response = await getPublicRecipes(page, pageSize, sortBy.value)
-    }
-    
+    const response = await getUserRecipes(page, pageSize)
     recipes.value = response.content || []
     totalPages.value = response.totalPages || 0
     totalElements.value = response.totalElements || 0
@@ -223,39 +158,20 @@ const loadRecipes = async (page = 0) => {
   }
 }
 
-const searchRecipes = () => {
-  currentPage.value = 0
-  loadRecipes(0)
-}
-
-const filterByMethod = () => {
-  currentPage.value = 0
-  loadRecipes(0)
-}
-
 const changePage = (page) => {
   if (page >= 0 && page < totalPages.value) {
     loadRecipes(page)
   }
 }
 
-const handleLike = async (recipeId) => {
+const handleDeleteRecipe = async (recipeId) => {
   try {
-    const recipe = recipes.value.find(r => r.id === recipeId)
-    if (recipe) {
-      if (recipe.isLikedByCurrentUser) {
-        await unlikeRecipe(recipeId)
-        recipe.isLikedByCurrentUser = false
-        recipe.likeCount = Math.max(0, (recipe.likeCount || 0) - 1)
-      } else {
-        await likeRecipe(recipeId)
-        recipe.isLikedByCurrentUser = true
-        recipe.likeCount = (recipe.likeCount || 0) + 1
-      }
-    }
+    await deleteRecipe(recipeId)
+    // Reload current page to refresh the list
+    await loadRecipes(currentPage.value)
   } catch (err) {
-    console.error('Error toggling like:', err)
-    alert('Failed to update like. Please try again.')
+    console.error('Error deleting recipe:', err)
+    alert('Failed to delete recipe. Please try again.')
   }
 }
 
