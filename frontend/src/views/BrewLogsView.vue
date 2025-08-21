@@ -37,7 +37,7 @@
         <div class="card">
           <div class="card-body text-center py-5">
             <i class="bi bi-cup-hot fs-1 text-secondary mb-3"></i>
-            <h5 class="card-title">No brew logs found</h5>
+            <h5 class="card-title mb-1">No brew logs found</h5>
             <p class="card-text text-secondary">
               Start tracking your coffee brewing journey by adding your first brew log.
             </p>

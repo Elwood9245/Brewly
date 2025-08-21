@@ -2,7 +2,7 @@
   <div class="card h-100">
     <div class="card-body">
       <!-- Header with title and actions -->
-      <div class="d-flex justify-content-between align-items-start mb-3">
+      <div class="d-flex justify-content-between align-items-start mb-1">
         <h5 class="card-title mb-0">
           {{ bean.name }}{{ bean.roastType ? ` (${formatEnum(bean.roastType)})` : '' }}
         </h5>

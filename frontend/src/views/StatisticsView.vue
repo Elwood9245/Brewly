@@ -87,10 +87,10 @@
       <!-- Method Statistics -->
       <div v-if="statistics.methodStatistics && statistics.methodStatistics.length > 0" class="col-12 col-lg-6 mb-4">
         <div class="card">
-          <div class="card-header">
-            <h5 class="card-title mb-0">Most Used Methods</h5>
-          </div>
           <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-1">
+              <h5 class="card-title mb-0">Most Used Methods</h5>
+            </div>
             <div class="method-stats">
               <div 
                 v-for="method in statistics.methodStatistics" 
@@ -116,10 +116,10 @@
       <!-- Top Beans -->
       <div v-if="statistics.topBeans && statistics.topBeans.length > 0" class="col-12 col-lg-6 mb-4">
         <div class="card">
-          <div class="card-header">
-            <h5 class="card-title mb-0">Top Beans</h5>
-          </div>
           <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-1">
+              <h5 class="card-title mb-0">Top Beans</h5>
+            </div>
             <div class="bean-stats">
               <div 
                 v-for="bean in sortedTopBeans" 
@@ -139,10 +139,10 @@
       <!-- Recent Brews -->
       <div v-if="statistics.recentBrews && statistics.recentBrews.length > 0" class="col-12 col-lg-6 mb-4">
         <div class="card">
-          <div class="card-header">
-            <h5 class="card-title mb-0">Recent Brews</h5>
-          </div>
           <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-1">
+              <h5 class="card-title mb-0">Recent Brews</h5>
+            </div>
             <div class="recent-brews">
               <div 
                 v-for="brew in statistics.recentBrews" 
@@ -223,14 +223,6 @@ onMounted(() => {
   gap: 1px;
 }
 
-.star {
-  color: #e9ecef;
-  font-size: 0.875rem;
-}
-
-.star.filled {
-  color: #2d2d2d;
-}
 
 @media (max-width: 768px) {
   .recent-brew-item {

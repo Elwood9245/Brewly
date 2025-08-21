@@ -210,7 +210,9 @@ const navigateToExplore = () => {
           <div class="card recipe-card h-100"> 
             <div class="recipe-image" :style="`background-image: url(${recipe.image})`"></div>
             <div class="card-body p-3">
-              <h6 class="card-title mb-1">{{ recipe.name }}</h6>
+              <div class="d-flex justify-content-between align-items-start mb-1">
+                <h5 class="card-title mb-0">{{ recipe.name }}</h5>
+              </div>
               <p class="small mb-2">by {{ recipe.author }}</p>
               <div class="d-flex justify-content-between align-items-center">
                 <button 
@@ -230,7 +232,7 @@ const navigateToExplore = () => {
       <div v-else class="card">
         <div class="card-body text-center py-5">
           <i class="bi bi-journal-bookmark fs-1 mb-3"></i>
-          <h5 class="mb-2">No recipes to explore yet</h5>
+          <h5 class="mb-1">No recipes to explore yet</h5>
           <p class="mb-3">Discover amazing coffee recipes from the community!</p>
           <div class="d-flex gap-2 justify-content-center">
             <button class="btn btn-outline-primary" @click="navigateToExplore">
@@ -263,30 +265,6 @@ const navigateToExplore = () => {
 .welcome-section h1 {
   color: #2d2d2d;
   font-weight: 700;
-}
-
-.stat-card {
-  border: none;
-  border-radius: 15px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s ease;
-}
-
-.stat-card:hover {
-  transform: translateY(-2px);
-}
-
-.stat-number {
-  font-size: 1.5rem;
-  font-weight: bold;
-  line-height: 1;
-  color: #2d2d2d;
-}
-
-.stat-label {
-  font-size: 0.75rem;
-  color: #495057;
-  margin-top: 0.25rem;
 }
 
 .recipe-card {

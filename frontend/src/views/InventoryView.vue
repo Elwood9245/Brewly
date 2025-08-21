@@ -65,7 +65,7 @@
         <div class="card">
           <div class="card-body text-center py-5">
             <i class="bi bi-boxes fs-1 text-secondary mb-3"></i>
-            <h5 class="card-title">No {{ activeTab }} beans found</h5>
+            <h5 class="card-title mb-1">No {{ activeTab }} beans found</h5>
             <p class="card-text text-secondary">
               {{ activeTab === 'active' 
                 ? 'Start building your coffee collection by adding your first bean.' 

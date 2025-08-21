@@ -154,6 +154,19 @@ textarea.error {
   box-shadow: 0 0 0 0.2rem rgba(45, 45, 45, 0.25);
 }
 
+/* Form select style */
+.form-select {
+  border-radius: 20px;
+  border: 1px solid #dee2e6;
+  padding: 10px 16px;
+  transition: border-color 0.2s ease;
+}
+
+.form-select:focus {
+  border-color: #2d2d2d;
+  box-shadow: 0 0 0 0.2rem rgba(45, 45, 45, 0.25);
+}
+
 /* Small button adjustments */
 .btn-sm {
   border-radius: 25px;

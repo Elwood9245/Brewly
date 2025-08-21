@@ -39,7 +39,7 @@
         <div class="card">
           <div class="card-body text-center py-5">
             <i class="bi bi-journal-bookmark fs-1 text-secondary mb-3"></i>
-            <h5 class="card-title">No recipes yet</h5>
+            <h5 class="card-title mb-1">No recipes yet</h5>
             <p class="card-text text-secondary">
               Start sharing your coffee brewing expertise by creating your first recipe.
             </p>

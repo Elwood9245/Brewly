@@ -6,13 +6,13 @@
         <div class="d-flex justify-content-between align-items-center">
           <div>
             <h1 class="h3 mb-0">{{ isEditing ? 'Edit Recipe' : 'Create New Recipe' }}</h1>
-            <p class="text-secondary mb-0">
-              {{ isEditing ? 'Update your recipe details and steps' : 'Share your coffee brewing expertise with the community' }}
-            </p>
           </div>
           <div class="d-flex gap-2">
-            <router-link to="/recipes" class="btn btn-outline-secondary">
-              <i class="bi bi-arrow-left me-2"></i>Back to Recipes
+            <router-link 
+              :to="isEditing ? `/recipes/${route.params.id}` : '/recipes'" 
+              class="btn btn-secondary"
+            >
+              <i class="bi bi-arrow-left me-2"></i>Back
             </router-link>
           </div>
         </div>
@@ -22,15 +22,11 @@
     <!-- Recipe Form -->
     <div class="row">
       <div class="col-12">
-        <div class="card">
-          <div class="card-body">
-            <RecipeForm 
-              :is-editing="isEditing"
-              @saved="handleSaved"
-              @cancelled="handleCancelled"
-            />
-          </div>
-        </div>
+        <RecipeForm 
+          :is-editing="isEditing"
+          @saved="handleSaved"
+          @cancelled="handleCancelled"
+        />
       </div>
     </div>
   </div>
@@ -55,13 +51,10 @@ const handleSaved = () => {
 }
 
 const handleCancelled = () => {
-  router.push('/recipes')
+  if (isEditing.value) {
+    router.push(`/recipes/${route.params.id}`)
+  } else {
+    router.push('/recipes')
+  }
 }
 </script>
-
-<style scoped>
-.card {
-  border: none;
-  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-}
-</style>
