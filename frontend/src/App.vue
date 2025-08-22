@@ -5,15 +5,18 @@
             <router-view />
         </div>
 
-        <div v-else-if="auth.isAuthenticated" class="main-app-layout">
+        <div v-else-if="auth.isAuthenticated">
             <!-- Header -->
             <nav class="navbar bg-white border-bottom fixed-top">
                 <div class="container-fluid">
                     <button class="btn m-0 p-0" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebar"
                         aria-controls="sidebar" ref="sidebarToggleBtn">
-                        <i class="bi bi-person user-avatar-toggle"></i>
+                        <i class="bi bi-person avatar-toggle"></i>
                     </button>
                     <span class="navbar-brand mx-auto fw-bold">Brewly</span>
+                    <router-link to="/ai" class="btn m-0 p-0">
+                        <i class="bi bi-robot avatar-toggle"></i>
+                    </router-link>
                 </div>
             </nav>
 
@@ -182,18 +185,13 @@ const navigateToRecipes = () => {
 </script>
 
 <style scoped>
-.main-content {
-    padding-top: 64px;
-    padding-bottom: 70px;
-}
-
-.user-avatar-toggle {
+.avatar-toggle {
     font-size: 1.5rem;
     color: #2d2d2d;
     transition: all 0.2s ease;
 }
 
-.user-avatar-toggle:hover {
+.avatar-toggle:hover {
     color: #1a1a1a;
     transform: scale(1.05);
 }

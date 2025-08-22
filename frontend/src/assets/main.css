@@ -234,6 +234,8 @@ textarea.error {
 
 /* Custom styling for better mobile experience */
 .main-content {
+  padding-top: 64px;
+  padding-bottom: 70px;
   padding-left: 15px;
   padding-right: 15px;
 }
