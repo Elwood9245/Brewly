@@ -91,4 +91,19 @@ public class Recipe {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private Instant updatedAt;
+    
+    @Column(name = "bookmarked_from_id")
+    private UUID bookmarkedFromId;
+    
+    @Builder.Default
+    @Column(name = "is_bookmark")
+    private Boolean isBookmark = false;
+    
+    @Column(name = "original_user_id")
+    private UUID originalUserId;
+    
+    // Helper methods for bookmark functionality
+    public boolean isBookmarked() {
+        return Boolean.TRUE.equals(isBookmark);
+    }
 }

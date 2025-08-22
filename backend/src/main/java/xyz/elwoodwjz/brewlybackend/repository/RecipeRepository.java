@@ -7,7 +7,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import xyz.elwoodwjz.brewlybackend.entity.Recipe;
 import xyz.elwoodwjz.brewlybackend.entity.RecipeVisibility;
-import java.util.List;
 import java.util.UUID;
 
 public interface RecipeRepository extends JpaRepository<Recipe, UUID> {
@@ -46,4 +45,19 @@ public interface RecipeRepository extends JpaRepository<Recipe, UUID> {
     @Query("SELECT r FROM Recipe r WHERE r.visibility = :visibility " +
            "ORDER BY (SELECT COUNT(l) FROM Like l WHERE l.recipeId = r.id) DESC, r.createdAt DESC")
     Page<Recipe> findPublicRecipesOrderByLikesDesc(@Param("visibility") RecipeVisibility visibility, Pageable pageable);
+    
+    /**
+     * Find user's own recipes (non-bookmarked)
+     */
+    Page<Recipe> findByUserIdAndIsBookmarkFalseOrderByCreatedAtDesc(UUID userId, Pageable pageable);
+    
+    /**
+     * Find user's bookmarked recipes
+     */
+    Page<Recipe> findByUserIdAndIsBookmarkTrueOrderByCreatedAtDesc(UUID userId, Pageable pageable);
+    
+    /**
+     * Check if user has already bookmarked a recipe
+     */
+    boolean existsByUserIdAndBookmarkedFromId(UUID userId, UUID recipeId);
 }

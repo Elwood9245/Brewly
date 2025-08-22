@@ -5,12 +5,38 @@
       <div class="col-12">
         <div class="d-flex justify-content-between align-items-center">
           <div>
-            <h1 class="h3 mb-0">My Recipes</h1>
+            <h1 class="h3 mb-0">Recipes</h1>
           </div>
           <div class="d-flex gap-2">
-            <router-link to="/recipes/create" class="btn btn-primary">
+            <router-link v-if="activeTab === 'my'" to="/recipes/create" class="btn btn-primary">
               <i class="bi bi-plus-circle me-2"></i>Create Recipe
             </router-link>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab Navigation -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="nav-container">
+          <div class="nav-tabs">
+            <button 
+              :class="['nav-tab', { active: activeTab === 'my' }]"
+              @click="switchTab('my')"
+            >
+              <i class="bi bi-journal-text me-2"></i>
+              <span>My Recipes</span>
+              <span>{{ myRecipesCount }}</span>
+            </button>
+            <button 
+              :class="['nav-tab', { active: activeTab === 'bookmarked' }]"
+              @click="switchTab('bookmarked')"
+            >
+              <i class="bi bi-bookmark-star me-2"></i>
+              <span>Bookmarked</span>
+              <span>{{ bookmarkedRecipesCount }}</span>
+            </button>
           </div>
         </div>
       </div>
@@ -38,13 +64,19 @@
       <div class="col-12">
         <div class="card">
           <div class="card-body text-center py-5">
-            <i class="bi bi-journal-bookmark fs-1 text-secondary mb-3"></i>
-            <h5 class="card-title mb-1">No recipes yet</h5>
+            <i :class="activeTab === 'my' ? 'bi bi-journal-bookmark' : 'bi bi-bookmark-star'" class="fs-1 text-secondary mb-3"></i>
+            <h5 class="card-title mb-1">{{ activeTab === 'my' ? 'No recipes yet' : 'No bookmarked recipes' }}</h5>
             <p class="card-text text-secondary">
-              Start sharing your coffee brewing expertise by creating your first recipe.
+              {{ activeTab === 'my' 
+                ? 'Start sharing your coffee brewing expertise by creating your first recipe.' 
+                : 'Bookmark recipes from the explore page to save them for later.' 
+              }}
             </p>
-            <router-link to="/recipes/create" class="btn btn-primary">
+            <router-link v-if="activeTab === 'my'" to="/recipes/create" class="btn btn-primary">
               <i class="bi bi-plus-circle me-2"></i>Create Your First Recipe
+            </router-link>
+            <router-link v-else to="/explore" class="btn btn-primary">
+              <i class="bi bi-search me-2"></i>Explore Recipes
             </router-link>
           </div>
         </div>
@@ -116,7 +148,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import RecipeCard from '../components/RecipeCard.vue'
-import { getUserRecipes, deleteRecipe } from '../api/recipes.js'
+import { getMyRecipes, getBookmarkedRecipes, deleteRecipe, unbookmarkRecipe } from '../api/recipes.js'
 
 const router = useRouter()
 
@@ -127,6 +159,11 @@ const currentPage = ref(0)
 const totalPages = ref(0)
 const totalElements = ref(0)
 const pageSize = 12
+const activeTab = ref('my')
+
+// Count states for tabs
+const myRecipesCount = ref(0)
+const bookmarkedRecipesCount = ref(0)
 
 const visiblePages = computed(() => {
   const pages = []
@@ -145,7 +182,15 @@ const loadRecipes = async (page = 0) => {
   error.value = null
 
   try {
-    const response = await getUserRecipes(page, pageSize)
+    let response
+    if (activeTab.value === 'my') {
+      response = await getMyRecipes(page, pageSize)
+    } else {
+      response = await getBookmarkedRecipes(page, pageSize)
+    }
+    
+    console.log('API Response:', response) // 添加调试日志
+    
     recipes.value = response.content || []
     totalPages.value = response.totalPages || 0
     totalElements.value = response.totalElements || 0
@@ -158,6 +203,12 @@ const loadRecipes = async (page = 0) => {
   }
 }
 
+const switchTab = (tab) => {
+  activeTab.value = tab
+  currentPage.value = 0 // Reset to first page when switching tabs
+  loadRecipes(0)
+}
+
 const changePage = (page) => {
   if (page >= 0 && page < totalPages.value) {
     loadRecipes(page)
@@ -166,17 +217,39 @@ const changePage = (page) => {
 
 const handleDeleteRecipe = async (recipeId) => {
   try {
-    await deleteRecipe(recipeId)
+    if (activeTab.value === 'bookmarked') {
+      await unbookmarkRecipe(recipeId)
+    } else {
+      await deleteRecipe(recipeId)
+    }
     // Reload current page to refresh the list
     await loadRecipes(currentPage.value)
+    // Refresh counts after deletion
+    await loadRecipeCounts()
   } catch (err) {
     console.error('Error deleting recipe:', err)
     alert('Failed to delete recipe. Please try again.')
   }
 }
 
-onMounted(() => {
-  loadRecipes()
+// Load recipe counts for tabs
+const loadRecipeCounts = async () => {
+  try {
+    // Get My Recipes count
+    const myRecipesResponse = await getMyRecipes(0, 1)
+    myRecipesCount.value = myRecipesResponse.totalElements || 0
+    
+    // Get Bookmarked Recipes count
+    const bookmarkedResponse = await getBookmarkedRecipes(0, 1)
+    bookmarkedRecipesCount.value = bookmarkedResponse.totalElements || 0
+  } catch (err) {
+    console.error('Error loading recipe counts:', err)
+  }
+}
+
+onMounted(async () => {
+  await loadRecipeCounts()
+  await loadRecipes()
 })
 </script>
 

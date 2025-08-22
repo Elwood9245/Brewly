@@ -20,7 +20,7 @@ export const deleteRecipe = async (recipeId) => {
   await apiClient.delete(`/recipes/${recipeId}`)
 }
 
-// User recipes
+// User recipes (all - both own and bookmarked)
 export const getUserRecipes = async (page = 0, size = 10) => {
   const response = await apiClient.get('/recipes/user', {
     params: { page, size }
@@ -74,4 +74,36 @@ export const getRecipeComments = async (recipeId, page = 0, size = 10) => {
 
 export const deleteComment = async (commentId) => {
   await apiClient.delete(`/comments/${commentId}`)
+}
+
+// Bookmark operations
+export const bookmarkRecipe = async (recipeId) => {
+  const response = await apiClient.post(`/recipes/${recipeId}/bookmark`)
+  return response.data
+}
+
+export const unbookmarkRecipe = async (recipeId) => {
+  await apiClient.delete(`/recipes/${recipeId}/bookmark`)
+}
+
+// My recipes (non-bookmarked)
+export const getMyRecipes = async (page = 0, size = 10) => {
+  const response = await apiClient.get('/recipes/my-recipes', {
+    params: { page, size }
+  })
+  return response.data
+}
+
+// Bookmarked recipes
+export const getBookmarkedRecipes = async (page = 0, size = 10) => {
+  const response = await apiClient.get('/recipes/bookmarked', {
+    params: { page, size }
+  })
+  return response.data
+}
+
+// Check bookmark status
+export const getBookmarkStatus = async (recipeId) => {
+  const response = await apiClient.get(`/recipes/${recipeId}/bookmark-status`)
+  return response.data
 }

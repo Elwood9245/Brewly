@@ -112,7 +112,10 @@
           :recipe="recipe"
           :show-actions="false"
           :show-like-button="true"
+          :show-bookmark-button="true"
+          :is-bookmarked="bookmarkStatuses.get(recipe.id)"
           @like="handleLike"
+          @bookmark="handleBookmark"
         />
       </div>
     </div>
@@ -170,7 +173,9 @@ import {
   searchPublicRecipes, 
   getPublicRecipesByMethod,
   likeRecipe,
-  unlikeRecipe
+  unlikeRecipe,
+  bookmarkRecipe,
+  getBookmarkStatus
 } from '../api/recipes.js'
 
 const recipes = ref([])
@@ -184,6 +189,7 @@ const pageSize = 12
 const searchKeyword = ref('')
 const selectedMethod = ref('')
 const sortBy = ref('latest')
+const bookmarkStatuses = ref(new Map())
 
 const visiblePages = computed(() => {
   const pages = []
@@ -215,6 +221,9 @@ const loadRecipes = async (page = 0) => {
     totalPages.value = response.totalPages || 0
     totalElements.value = response.totalElements || 0
     currentPage.value = page
+    
+    // Load bookmark statuses for all recipes
+    await loadBookmarkStatuses()
   } catch (err) {
     console.error('Error loading recipes:', err)
     error.value = 'Failed to load recipes. Please try again.'
@@ -256,6 +265,36 @@ const handleLike = async (recipeId) => {
   } catch (err) {
     console.error('Error toggling like:', err)
     alert('Failed to update like. Please try again.')
+  }
+}
+
+const handleBookmark = async (recipeId) => {
+  try {
+    const isCurrentlyBookmarked = bookmarkStatuses.value.get(recipeId)
+    
+    if (isCurrentlyBookmarked) {
+      // Already bookmarked, show message
+      alert('This recipe is already bookmarked. You can find it in your bookmarked recipes.')
+    } else {
+      // Bookmark the recipe
+      await bookmarkRecipe(recipeId)
+      bookmarkStatuses.value.set(recipeId, true)
+      alert('Recipe bookmarked successfully! You can find it in your bookmarked recipes.')
+    }
+  } catch (err) {
+    console.error('Error bookmarking recipe:', err)
+    alert('Failed to bookmark recipe. Please try again.')
+  }
+}
+
+const loadBookmarkStatuses = async () => {
+  try {
+    for (const recipe of recipes.value) {
+      const isBookmarked = await getBookmarkStatus(recipe.id)
+      bookmarkStatuses.value.set(recipe.id, isBookmarked)
+    }
+  } catch (err) {
+    console.error('Error loading bookmark statuses:', err)
   }
 }
 

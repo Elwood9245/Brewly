@@ -156,7 +156,7 @@
       <!-- Recipe Selection (Optional) -->
       <div class="form-group">
         <label for="recipe-select">Recipe (Optional)</label>
-        <select id="recipe-select" v-model="form.recipeId" :class="{ error: errors.recipeId }">
+        <select id="recipe-select" v-model="form.recipeId" @change="onRecipeChange" :class="{ error: errors.recipeId }">
           <option value="">No recipe</option>
           <option 
             v-for="recipe in userRecipes" 
@@ -169,43 +169,12 @@
         <div v-if="errors.recipeId" class="error-msg">{{ errors.recipeId }}</div>
       </div>
 
-      <!-- Imported Recipe Information -->
-      <div class="form-group">
-        <label for="imported-recipe-title">Imported Recipe Title</label>
-        <input 
-          id="imported-recipe-title" 
-          v-model="form.importedRecipeTitle" 
-          type="text" 
-          placeholder="e.g., James Hoffmann V60 Method"
-          :class="{ error: errors.importedRecipeTitle }"
-        >
-        <div v-if="errors.importedRecipeTitle" class="error-msg">{{ errors.importedRecipeTitle }}</div>
-      </div>
-
-      <div class="form-group">
-        <label for="imported-recipe-method">Imported Recipe Method</label>
-        <input 
-          id="imported-recipe-method" 
-          v-model="form.importedRecipeMethod" 
-          type="text" 
-          placeholder="e.g., V60"
-          :class="{ error: errors.importedRecipeMethod }"
-        >
-        <div v-if="errors.importedRecipeMethod" class="error-msg">{{ errors.importedRecipeMethod }}</div>
-      </div>
-
-      <div class="form-group">
-        <label for="imported-recipe-steps">Imported Recipe Steps (JSON array)</label>
-        <textarea 
-          id="imported-recipe-steps" 
-          v-model="form.importedRecipeStepsText" 
-          rows="4"
-          placeholder='["Step 1", "Step 2", "Step 3"]'
-          @input="updateImportedRecipeSteps"
-          :class="{ error: errors.importedRecipeSteps }"
-        ></textarea>
-        <small class="form-help">Enter steps as a JSON array, e.g., ["Rinse filter", "Add coffee", "Pour water"]</small>
-        <div v-if="errors.importedRecipeSteps" class="error-msg">{{ errors.importedRecipeSteps }}</div>
+      <!-- Selected Recipe Steps Display -->
+      <div v-if="selectedRecipe" class="form-group">
+        <label>Recipe Steps</label>
+        <div class="recipe-steps-display">
+          <StepDisplay :steps="selectedRecipe.steps" />
+        </div>
       </div>
 
       <!-- Form Actions -->
@@ -219,10 +188,12 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, watch } from 'vue'
+import { ref, reactive, computed, onMounted} from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { createBrewLog, updateBrewLog, getBrewLogById } from '../api/brewlogs.js'
 import { getUserBeans } from '../api/beans.js'
+import { getUserRecipes } from '../api/recipes.js'
+import StepDisplay from '../components/StepDisplay.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -241,16 +212,11 @@ const form = reactive({
   brewTimeSeconds: null,
   tasteNotes: '',
   rating: null,
-  recipeId: '',
-  importedRecipeTitle: '',
-  importedRecipeMethod: '',
-  importedRecipeSteps: []
+  recipeId: ''
 })
 
 // Text representation of importedRecipeSteps for the textarea
-const formData = reactive({
-  importedRecipeStepsText: ''
-})
+
 
 const errors = reactive({
   beanId: '',
@@ -262,14 +228,12 @@ const errors = reactive({
   brewTimeSeconds: '',
   tasteNotes: '',
   rating: '',
-  recipeId: '',
-  importedRecipeTitle: '',
-  importedRecipeMethod: '',
-  importedRecipeSteps: ''
+  recipeId: ''
 })
 
 const userBeans = ref([])
 const userRecipes = ref([])
+const selectedRecipe = ref(null)
 const submitting = ref(false)
 const submitError = ref('')
 const submitSuccess = ref('')
@@ -318,14 +282,6 @@ function validate() {
     errors.tasteNotes = 'Taste notes must be 2000 characters or less.'
   }
 
-  if (form.importedRecipeTitle && form.importedRecipeTitle.length > 100) {
-    errors.importedRecipeTitle = 'Imported recipe title must be 100 characters or less.'
-  }
-
-  if (form.importedRecipeMethod && form.importedRecipeMethod.length > 50) {
-    errors.importedRecipeMethod = 'Imported recipe method must be 50 characters or less.'
-  }
-
   // Return true if no errors
   return Object.values(errors).every(error => !error)
 }
@@ -347,10 +303,7 @@ async function onSubmit() {
       brewTimeSeconds: form.brewTimeSeconds ? Number(form.brewTimeSeconds) : null,
       tasteNotes: form.tasteNotes.trim() || null,
       rating: form.rating ? Number(form.rating) : null,
-      recipeId: form.recipeId || null,
-      importedRecipeTitle: form.importedRecipeTitle.trim() || null,
-      importedRecipeMethod: form.importedRecipeMethod.trim() || null,
-      importedRecipeSteps: form.importedRecipeSteps
+      recipeId: form.recipeId || null
     }
 
     if (isEditing.value) {
@@ -391,20 +344,26 @@ function resetForm() {
     brewTimeSeconds: null,
     tasteNotes: '',
     rating: null,
-    recipeId: '',
-    importedRecipeTitle: '',
-    importedRecipeMethod: '',
-    importedRecipeSteps: []
+    recipeId: ''
   })
-  formData.importedRecipeStepsText = ''
+  selectedRecipe.value = null
 }
 
 const loadUserBeans = async () => {
   try {
-    const response = await getUserBeans()
-    userBeans.value = response
+    userBeans.value = await getUserBeans()
   } catch (error) {
     console.error('Error loading user beans:', error)
+  }
+}
+
+const loadUserRecipes = async () => {
+  try {
+    // 获取用户所有可用的recipes（包括自己创建的和bookmarked的）
+    const response = await getUserRecipes()
+    userRecipes.value = response.content || []
+  } catch (error) {
+    console.error('Error loading user recipes:', error)
   }
 }
 
@@ -413,22 +372,24 @@ const onBeanChange = () => {
   // No need to set form.beanName anymore
 }
 
-const updateImportedRecipeSteps = () => {
-  try {
-    if (formData.importedRecipeStepsText.trim()) {
-      form.importedRecipeSteps = JSON.parse(formData.importedRecipeStepsText)
-    } else {
-      form.importedRecipeSteps = []
+const onRecipeChange = () => {
+  if (form.recipeId) {
+    selectedRecipe.value = userRecipes.value.find(recipe => recipe.id === form.recipeId)
+    // Auto-fill method if not already set
+    if (!form.method && selectedRecipe.value?.method) {
+      form.method = selectedRecipe.value.method
     }
-  } catch (error) {
-    console.error('Invalid JSON for imported recipe steps:', error)
-    // Keep the current value if JSON is invalid
+  } else {
+    selectedRecipe.value = null
   }
 }
+
+
 
 // If editing, fetch brew log data on mount
 onMounted(async () => {
   await loadUserBeans()
+  await loadUserRecipes()
   
   if (isEditing.value) {
     try {
@@ -443,14 +404,13 @@ onMounted(async () => {
         brewTimeSeconds: brewLog.brewTimeSeconds,
         tasteNotes: brewLog.tasteNotes || '',
         rating: brewLog.rating,
-        recipeId: brewLog.recipeId || '',
-        importedRecipeTitle: brewLog.importedRecipeTitle || '',
-        importedRecipeMethod: brewLog.importedRecipeMethod || '',
-        importedRecipeSteps: brewLog.importedRecipeSteps || []
+        recipeId: brewLog.recipeId || ''
       })
       
-      // Update the text representation for the textarea
-      formData.importedRecipeStepsText = JSON.stringify(brewLog.importedRecipeSteps || [], null, 2)
+      // Set selected recipe if editing
+      if (brewLog.recipeId) {
+        onRecipeChange()
+      }
     } catch (e) {
       submitError.value = 'Failed to load brew log data.'
     }
@@ -498,13 +458,5 @@ select {
 .form-actions {
   text-align: center;
   margin-top: 1em;
-}
-
-.form-help {
-  display: block;
-  margin-top: 5px;
-  font-size: 12px;
-  color: #6c757d;
-  font-style: italic;
 }
 </style>

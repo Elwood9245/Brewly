@@ -9,11 +9,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import xyz.elwoodwjz.brewlybackend.dto.recipe.*;
 import xyz.elwoodwjz.brewlybackend.service.RecipeService;
-import xyz.elwoodwjz.brewlybackend.security.JwtUtil;
 import xyz.elwoodwjz.brewlybackend.security.CustomUserDetailsService.CustomUserPrincipal;
 import java.util.UUID;
 
@@ -71,7 +69,7 @@ public class RecipeController {
         return ResponseEntity.noContent().build();
     }
     
-    // User recipes
+    // User recipes (all - both own and bookmarked)
     @GetMapping("/user")
     public ResponseEntity<Page<RecipeResponse>> getUserRecipes(
             @RequestParam(defaultValue = "0") int page,
@@ -79,7 +77,7 @@ public class RecipeController {
             Authentication authentication) {
         UUID userId = getUserIdFromAuthentication(authentication);
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-        Page<RecipeResponse> recipes = recipeService.getUserRecipes(userId, pageable);
+        Page<RecipeResponse> recipes = recipeService.getUserAvailableRecipes(userId, pageable);
         return ResponseEntity.ok(recipes);
     }
     
@@ -168,5 +166,58 @@ public class RecipeController {
         UUID userId = getUserIdFromAuthentication(authentication);
         recipeService.deleteComment(commentId, userId);
         return ResponseEntity.noContent().build();
+    }
+    
+    // Bookmark operations
+    @PostMapping("/{id}/bookmark")
+    public ResponseEntity<RecipeResponse> bookmarkRecipe(
+            @PathVariable UUID id,
+            Authentication authentication) {
+        UUID userId = getUserIdFromAuthentication(authentication);
+        RecipeResponse response = recipeService.bookmarkRecipe(userId, id);
+        return ResponseEntity.ok(response);
+    }
+    
+    @DeleteMapping("/{id}/bookmark")
+    public ResponseEntity<Void> unbookmarkRecipe(
+            @PathVariable UUID id,
+            Authentication authentication) {
+        UUID userId = getUserIdFromAuthentication(authentication);
+        recipeService.unbookmarkRecipe(userId, id);
+        return ResponseEntity.noContent().build();
+    }
+    
+    // My recipes (non-bookmarked)
+    @GetMapping("/my-recipes")
+    public ResponseEntity<Page<RecipeResponse>> getMyRecipes(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            Authentication authentication) {
+        UUID userId = getUserIdFromAuthentication(authentication);
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        Page<RecipeResponse> recipes = recipeService.getMyRecipes(userId, pageable);
+        return ResponseEntity.ok(recipes);
+    }
+    
+    // Bookmarked recipes
+    @GetMapping("/bookmarked")
+    public ResponseEntity<Page<RecipeResponse>> getBookmarkedRecipes(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            Authentication authentication) {
+        UUID userId = getUserIdFromAuthentication(authentication);
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        Page<RecipeResponse> recipes = recipeService.getBookmarkedRecipes(userId, pageable);
+        return ResponseEntity.ok(recipes);
+    }
+    
+    // Check if recipe is bookmarked by current user
+    @GetMapping("/{id}/bookmark-status")
+    public ResponseEntity<Boolean> isRecipeBookmarked(
+            @PathVariable UUID id,
+            Authentication authentication) {
+        UUID userId = getUserIdFromAuthentication(authentication);
+        boolean isBookmarked = recipeService.isRecipeBookmarkedByUser(userId, id);
+        return ResponseEntity.ok(isBookmarked);
     }
 }

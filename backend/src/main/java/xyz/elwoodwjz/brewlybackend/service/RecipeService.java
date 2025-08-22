@@ -11,7 +11,6 @@ import xyz.elwoodwjz.brewlybackend.exception.ResourceNotFoundException;
 import xyz.elwoodwjz.brewlybackend.exception.UnauthorizedException;
 import xyz.elwoodwjz.brewlybackend.repository.*;
 import xyz.elwoodwjz.brewlybackend.entity.RecipeVisibility;
-import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -86,12 +85,6 @@ public class RecipeService {
         commentRepository.deleteByRecipeId(recipeId);
         
         recipeRepository.delete(recipe);
-    }
-    
-    @Transactional(readOnly = true)
-    public Page<RecipeResponse> getUserRecipes(UUID userId, Pageable pageable) {
-        Page<Recipe> recipes = recipeRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable);
-        return recipes.map(recipe -> convertToResponse(recipe, userId));
     }
     
     @Transactional(readOnly = true)
@@ -239,5 +232,85 @@ public class RecipeService {
             .content(comment.getContent())
             .createdAt(comment.getCreatedAt())
             .build();
+    }
+    
+    // Bookmark functionality
+    @Transactional
+    public RecipeResponse bookmarkRecipe(UUID userId, UUID recipeId) {
+        Recipe originalRecipe = recipeRepository.findById(recipeId)
+            .orElseThrow(() -> new ResourceNotFoundException("Recipe not found"));
+        
+        // Check if user can bookmark this recipe
+        if (originalRecipe.getVisibility() == RecipeVisibility.PRIVATE && 
+            !originalRecipe.getUserId().equals(userId)) {
+            throw new UnauthorizedException("You don't have permission to bookmark this recipe");
+        }
+        
+        // Check if user has already bookmarked this recipe
+        if (recipeRepository.existsByUserIdAndBookmarkedFromId(userId, recipeId)) {
+            throw new IllegalArgumentException("You have already bookmarked this recipe");
+        }
+        
+        // Check if user is trying to bookmark their own recipe
+        if (originalRecipe.getUserId().equals(userId)) {
+            throw new IllegalArgumentException("You cannot bookmark your own recipe");
+        }
+        
+        // Create bookmarked recipe
+        Recipe bookmarkedRecipe = Recipe.builder()
+            .userId(userId)
+            .title(originalRecipe.getTitle() + " (Bookmarked)")
+            .method(originalRecipe.getMethod())
+            .description(originalRecipe.getDescription())
+            .visibility(RecipeVisibility.PRIVATE) // Bookmarked recipes are always private
+            .bookmarkedFromId(recipeId)
+            .isBookmark(true)
+            .originalUserId(originalRecipe.getUserId())
+            .build();
+        
+        bookmarkedRecipe.setStepsFromList(originalRecipe.getStepsAsList());
+        Recipe savedBookmarkedRecipe = recipeRepository.save(bookmarkedRecipe);
+        
+        return convertToResponse(savedBookmarkedRecipe, userId);
+    }
+    
+    @Transactional
+    public void unbookmarkRecipe(UUID userId, UUID recipeId) {
+        Recipe bookmarkedRecipe = recipeRepository.findById(recipeId)
+            .orElseThrow(() -> new ResourceNotFoundException("Recipe not found"));
+        
+        if (!bookmarkedRecipe.getUserId().equals(userId)) {
+            throw new UnauthorizedException("You can only unbookmark your own bookmarked recipes");
+        }
+        
+        if (!bookmarkedRecipe.isBookmarked()) {
+            throw new IllegalArgumentException("This is not a bookmarked recipe");
+        }
+        
+        recipeRepository.delete(bookmarkedRecipe);
+    }
+    
+    @Transactional(readOnly = true)
+    public Page<RecipeResponse> getMyRecipes(UUID userId, Pageable pageable) {
+        Page<Recipe> recipes = recipeRepository.findByUserIdAndIsBookmarkFalseOrderByCreatedAtDesc(userId, pageable);
+        return recipes.map(recipe -> convertToResponse(recipe, userId));
+    }
+    
+    @Transactional(readOnly = true)
+    public Page<RecipeResponse> getBookmarkedRecipes(UUID userId, Pageable pageable) {
+        Page<Recipe> recipes = recipeRepository.findByUserIdAndIsBookmarkTrueOrderByCreatedAtDesc(userId, pageable);
+        return recipes.map(recipe -> convertToResponse(recipe, userId));
+    }
+    
+    @Transactional(readOnly = true)
+    public boolean isRecipeBookmarkedByUser(UUID userId, UUID recipeId) {
+        return recipeRepository.existsByUserIdAndBookmarkedFromId(userId, recipeId);
+    }
+    
+    // Get all user's available recipes (both own and bookmarked) for brew log creation
+    @Transactional(readOnly = true)
+    public Page<RecipeResponse> getUserAvailableRecipes(UUID userId, Pageable pageable) {
+        Page<Recipe> recipes = recipeRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable);
+        return recipes.map(recipe -> convertToResponse(recipe, userId));
     }
 }

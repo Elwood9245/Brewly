@@ -82,9 +82,18 @@
           @click="handleLike"
           :class="likeButtonClass"
           class="btn btn-sm"
+          :title="recipe.isLikedByCurrentUser ? 'Liked' : 'Like'"
         >
           <i :class="likeIconClass"></i>
-          {{ recipe.isLikedByCurrentUser ? 'Liked' : 'Like' }}
+        </button>
+        <button 
+          v-if="showBookmarkButton"
+          @click="handleBookmark"
+          :class="bookmarkButtonClass"
+          class="btn btn-sm"
+          :title="isBookmarked ? 'Bookmarked' : 'Bookmark'"
+        >
+          <i :class="bookmarkIconClass"></i>
         </button>
         <router-link 
           v-if="showViewButton"
@@ -117,10 +126,18 @@ const props = defineProps({
   showViewButton: {
     type: Boolean,
     default: true
+  },
+  showBookmarkButton: {
+    type: Boolean,
+    default: false
+  },
+  isBookmarked: {
+    type: Boolean,
+    default: false
   }
 })
 
-const emit = defineEmits(['delete', 'like'])
+const emit = defineEmits(['delete', 'like', 'bookmark'])
 
 const hasActions = computed(() => props.showActions)
 const showView = computed(() => true)
@@ -145,6 +162,18 @@ const likeIconClass = computed(() => {
     : 'bi bi-heart'
 })
 
+const bookmarkButtonClass = computed(() => {
+  return props.isBookmarked 
+    ? 'btn-primary' 
+    : 'btn-outline-primary'
+})
+
+const bookmarkIconClass = computed(() => {
+  return props.isBookmarked 
+    ? 'bi bi-bookmark-fill' 
+    : 'bi bi-bookmark'
+})
+
 const handleDelete = () => {
   if (confirm('Are you sure you want to delete this recipe?')) {
     emit('delete', props.recipe.id)
@@ -153,6 +182,10 @@ const handleDelete = () => {
 
 const handleLike = () => {
   emit('like', props.recipe.id)
+}
+
+const handleBookmark = () => {
+  emit('bookmark', props.recipe.id)
 }
 
 const truncateText = (text, maxLength) => {
