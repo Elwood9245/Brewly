@@ -2,13 +2,48 @@
 
 A responsive full-stack web application designed for home baristas and specialty coffee enthusiasts to log brews, track inventory, share recipes, and improve brewing techniques through analytics and AI-powered assistance.
 
+## 📊 Project Status
+
+**Current Version**: Beta (v0.0.1-SNAPSHOT)  
+**Last Updated**: March 2026  
+**Build Status**: ✅ Backend compiles successfully, Frontend dependencies installable  
+**Code Quality**: Good - Clean architecture, proper separation of concerns  
+**Production Readiness**: Medium - Requires environment configuration optimization
+
+### Key Assessment Points
+- ✅ **Core Features Implemented**: Brew logging, recipe management, inventory tracking, AI assistant
+- ✅ **Authentication Working**: JWT-based auth with proper security measures
+- ✅ **Database Schema Complete**: All entities properly defined with relationships
+- ✅ **API Documentation**: Comprehensive REST API endpoints documented
+- ⚠️ **Configuration**: Currently uses hardcoded values in properties file (needs environment variables)
+- ⚠️ **Testing**: Limited test coverage (needs improvement)
+- 🔄 **Frontend State Management**: Basic Vue Composition API (could benefit from Pinia)
+
 ## Project Structure
 
 ```
 brewly/
-├── backend/          # Spring Boot REST API
-├── frontend/         # Vue.js SPA
-└── README.md        # This file
+├── backend/          # Spring Boot REST API (Java 21)
+│   ├── src/main/java/xyz/elwoodwjz/brewlybackend/
+│   │   ├── controller/    # 7 REST controllers
+│   │   ├── service/       # 5 business services
+│   │   ├── repository/    # 6 data repositories
+│   │   ├── entity/        # 8 JPA entities
+│   │   ├── dto/           # Data transfer objects (6 packages)
+│   │   ├── config/        # Configuration classes
+│   │   ├── security/      # JWT authentication
+│   │   └── exception/     # Custom exception handling
+│   └── src/main/resources/application.properties
+├── frontend/         # Vue.js 3 Single Page Application
+│   ├── src/
+│   │   ├── views/        # 12 page components
+│   │   ├── components/   # 9 reusable components
+│   │   ├── router/       # Routing configuration
+│   │   ├── stores/       # State management (auth store)
+│   │   ├── api/          # API clients (5 API modules)
+│   │   └── assets/       # Static resources
+│   └── package.json
+└── README.md
 ```
 
 ## Features
@@ -25,31 +60,33 @@ brewly/
 ### Authentication & Security
 - JWT-based stateless authentication
 - Local registration and login (username/email + password)
-- CORS API endpoints
+- CORS API endpoints properly configured
+- Input validation and global exception handling
 
 ## Tech Stack
 
 ### Backend
-- Spring Boot 3.5.3
-- Spring Security
-- Spring Data JPA
-- JWT
-- Jakarta Validation
-- Lombok
-- Jackson
-- Anthropic Claude API
+- **Framework**: Spring Boot 3.5.3 (Java 21)
+- **Security**: Spring Security + JWT (jjwt 0.12.6)
+- **Data Layer**: Spring Data JPA + PostgreSQL + Hibernate
+- **API Integration**: Anthropic Claude 3.5 Haiku API (anthropic-java 1.0.0)
+- **Tools**: Lombok 1.18.32, Jackson, Jakarta Validation
+- **Reactive**: Spring WebFlux (for AI API calls)
+- **Build**: Maven
 
 ### Frontend
-- Vue 3
-- Vite 7.0.6
-- Vue Router 4
-- Bootstrap 5.3.7
-- Bootstrap Icons
-- Axios - HTTP client for API communication
+- **Framework**: Vue 3.5.18 (Composition API)
+- **Build Tool**: Vite 7.0.6
+- **Routing**: Vue Router 4.5.1
+- **UI Framework**: Bootstrap 5.3.7 + Bootstrap Icons 1.13.1
+- **HTTP Client**: Axios 1.11.0
+- **Development Tools**: Vue DevTools
 
 ### Database
-- PostgreSQL
-- Hibernate - ORM with automatic schema management
+- **Primary Database**: PostgreSQL
+- **ORM**: Hibernate with automatic schema management
+- **Data Types**: Support for JSONB fields for recipe step storage
+- **Timezone**: UTC timezone configuration
 
 ## Development Setup
 
@@ -89,6 +126,40 @@ brewly/
    ```
    Frontend will be available at `http://localhost:5173`
 
+## 🛠️ Build & Test
+
+### Backend Build
+```bash
+cd backend
+# Compile the project
+./mvnw compile
+
+# Run tests
+./mvnw test
+
+# Package the application
+./mvnw package
+```
+
+### Frontend Build
+```bash
+cd frontend
+# Install dependencies
+npm install
+
+# Development mode
+npm run dev
+
+# Production build
+npm run build
+
+# Preview production build
+npm run preview
+```
+
+### Testing Status
+- **Backend Tests**: Basic test class exists, needs expanded test coverage
+- **Frontend Tests**: Currently lacks testing framework (consider adding Vitest)
 
 ## Architecture
 
@@ -98,13 +169,13 @@ The backend follows a clean layered architecture pattern with RESTful API design
 
 The API uses proper HTTP methods and follows REST conventions for resource management. `Data transfer objects` (DTOs) are applied for API communication between the frontend and backend. 
 
-Authentication is handled through `JWT tokens`, providing stateless authentication with  validation for secure access. The application includes global exception handlers that provide custom error responses for error management.
+Authentication is handled through `JWT tokens`, providing stateless authentication with validation for secure access. The application includes global exception handlers that provide custom error responses for error management.
 
 `CORS` configuration is properly set up to enable cross-origin resource sharing for seamless frontend integration.
 
 ### Frontend Architecture
 
-The frontend is built as a `Single Page Application (SPA)` using Vue.js with client-side routing provided by Vue Router. The application follows a component-based architecture with reusable Vue components built using the Composition API
+The frontend is built as a `Single Page Application (SPA)` using Vue.js with client-side routing provided by Vue Router. The application follows a component-based architecture with reusable Vue components built using the Composition API.
 
 API integration is implemented using Axios with request and response interceptors for automatic authentication token handling and error management. The user interface is designed with a mobile-first approach using Bootstrap 5, ensuring responsive design across all device types and screen sizes.
 
@@ -185,9 +256,62 @@ API integration is implemented using Axios with request and response interceptor
 |--------|----------|-------------|
 | POST | `/api/ai/chat` | Chat with AI assistant |
 
-## Configuration
+## ⚠️ Configuration Notes
 
-### Environment Variables
-- `ANTHROPIC_API_KEY` - Anthropic Claude API key
-- `JWT_SECRET` - JWT signing secret
-- `DATABASE_URL` - PostgreSQL connection string
+### Current State
+The project currently uses hardcoded configuration values in `backend/src/main/resources/application.properties`, including:
+- JWT secret key
+- Anthropic API key
+- Database credentials
+
+### Production Environment Recommendations
+1. **Migrate to Environment Variables**:
+   Update `application.properties` to use environment variable references:
+   ```properties
+   # Replace hardcoded values with environment variable references
+   jwt.secret=${JWT_SECRET}
+   anthropic.api.key=${ANTHROPIC_API_KEY}
+   spring.datasource.password=${DATABASE_PASSWORD}
+   ```
+
+2. **Create .env File Example**:
+   ```bash
+   # .env.example
+   JWT_SECRET=your-secure-jwt-secret-here
+   ANTHROPIC_API_KEY=your-anthropic-api-key-here
+   DATABASE_PASSWORD=your-database-password-here
+   ```
+
+3. **Environment Variables Required**:
+   - `ANTHROPIC_API_KEY` - Anthropic Claude API key
+   - `JWT_SECRET` - JWT signing secret
+   - `DATABASE_URL` - PostgreSQL connection string (optional, can use separate properties)
+
+## 🔧 Known Issues & Improvement Plan
+
+### High Priority
+1. **Hardcoded Configuration** - Migrate sensitive information to environment variables
+2. **Git Status Anomaly** - package-lock.json file has conflicting staged/unstaged status
+3. **Limited Test Coverage** - Need to add unit tests and integration tests
+
+### Medium Priority
+1. **Frontend State Management** - Consider introducing Pinia for more structured state management
+2. **Error Handling Optimization** - Frontend error handling could be more user-friendly
+3. **Performance Monitoring** - Add application performance monitoring and logging
+
+### Low Priority
+1. **Documentation Enhancement** - Add more detailed API documentation and usage examples
+2. **CI/CD Pipeline** - Set up automated build and deployment pipeline
+3. **Containerization** - Provide Docker configuration for easier deployment
+
+## License & Contribution
+
+This project is developed as a demonstration of full-stack development practices. Feel free to use it as a reference or starting point for your own projects.
+
+### Getting Help
+If you encounter issues or have questions about the project structure or implementation, please refer to the code comments and architecture documentation provided.
+
+---
+
+*Last Updated: March 2026*  
+*Project Health: Good - Functional with some production optimizations needed*
