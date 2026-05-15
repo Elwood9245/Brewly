@@ -5,7 +5,7 @@ A responsive full-stack web application designed for home baristas and specialty
 ## 📊 Project Status
 
 **Current Version**: Beta (v0.0.1-SNAPSHOT)  
-**Last Updated**: March 2026  
+**Last Updated**: May 2026  
 **Build Status**: ✅ Backend compiles successfully, Frontend dependencies installable  
 **Code Quality**: Good - Clean architecture, proper separation of concerns  
 **Production Readiness**: Medium - Requires environment configuration optimization
@@ -52,7 +52,7 @@ brewly/
 - Log brews with parameters (bean, method, grind size, ratio, time, temperature, taste notes, ratings)
 - Create, edit, and share brewing recipes with step-by-step instructions stored as JSON
 - Track coffee beans with origin, roast level, weight, consumption, and flavour profiles
-- Claude 3.5 Haiku-powered chat interface for personalised brewing advice and coffee knowledge
+- DeepSeek-powered AI chat with SSE streaming for personalised brewing advice and coffee knowledge
 - Visual analytics showing brew frequency, method preferences, ratings, and trends
 - Comment on recipes, like favourites, and bookmark community recipes
 - Responsive interface optimised for mobile devices
@@ -69,9 +69,9 @@ brewly/
 - **Framework**: Spring Boot 3.5.3 (Java 21)
 - **Security**: Spring Security + JWT (jjwt 0.12.6)
 - **Data Layer**: Spring Data JPA + PostgreSQL + Hibernate
-- **API Integration**: Anthropic Claude 3.5 Haiku API (anthropic-java 1.0.0)
-- **Tools**: Lombok 1.18.32, Jackson, Jakarta Validation
-- **Reactive**: Spring WebFlux (for AI API calls)
+- **API Integration**: DeepSeek API via shared WebClient bean (Spring WebFlux)
+- **Streaming**: SSE (Server-Sent Events) via `Flux<String>` for real-time AI chat
+- **Tools**: Lombok 1.18.36, Jackson, Jakarta Validation
 - **Build**: Maven
 
 ### Frontend
@@ -243,7 +243,7 @@ API integration is implemented using Axios with request and response interceptor
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/api/beans` | Get all beans |
+| GET | `/api/beans` | Get current user's beans |
 | GET | `/api/beans/user` | Get user's beans |
 | POST | `/api/beans` | Add new bean |
 | GET | `/api/beans/{id}` | Get specific bean |
@@ -254,15 +254,17 @@ API integration is implemented using Axios with request and response interceptor
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/api/ai/chat` | Chat with AI assistant |
+| POST | `/api/ai/chat` | Chat with AI assistant (blocking) |
+| POST | `/api/ai/chat/stream` | Chat with AI assistant (SSE streaming) |
 
 ## ⚠️ Configuration Notes
 
 ### Current State
 The project currently uses hardcoded configuration values in `backend/src/main/resources/application.properties`, including:
 - JWT secret key
-- Anthropic API key
 - Database credentials
+
+The DeepSeek API key already reads from the `DEEPSEEK_API_KEY` environment variable.
 
 ### Production Environment Recommendations
 1. **Migrate to Environment Variables**:
@@ -270,7 +272,6 @@ The project currently uses hardcoded configuration values in `backend/src/main/r
    ```properties
    # Replace hardcoded values with environment variable references
    jwt.secret=${JWT_SECRET}
-   anthropic.api.key=${ANTHROPIC_API_KEY}
    spring.datasource.password=${DATABASE_PASSWORD}
    ```
 
@@ -278,31 +279,14 @@ The project currently uses hardcoded configuration values in `backend/src/main/r
    ```bash
    # .env.example
    JWT_SECRET=your-secure-jwt-secret-here
-   ANTHROPIC_API_KEY=your-anthropic-api-key-here
+   DEEPSEEK_API_KEY=your-deepseek-api-key-here
    DATABASE_PASSWORD=your-database-password-here
    ```
 
 3. **Environment Variables Required**:
-   - `ANTHROPIC_API_KEY` - Anthropic Claude API key
+   - `DEEPSEEK_API_KEY` - DeepSeek API key
    - `JWT_SECRET` - JWT signing secret
    - `DATABASE_URL` - PostgreSQL connection string (optional, can use separate properties)
-
-## 🔧 Known Issues & Improvement Plan
-
-### High Priority
-1. **Hardcoded Configuration** - Migrate sensitive information to environment variables
-2. **Git Status Anomaly** - package-lock.json file has conflicting staged/unstaged status
-3. **Limited Test Coverage** - Need to add unit tests and integration tests
-
-### Medium Priority
-1. **Frontend State Management** - Consider introducing Pinia for more structured state management
-2. **Error Handling Optimization** - Frontend error handling could be more user-friendly
-3. **Performance Monitoring** - Add application performance monitoring and logging
-
-### Low Priority
-1. **Documentation Enhancement** - Add more detailed API documentation and usage examples
-2. **CI/CD Pipeline** - Set up automated build and deployment pipeline
-3. **Containerization** - Provide Docker configuration for easier deployment
 
 ## License & Contribution
 
@@ -313,44 +297,4 @@ If you encounter issues or have questions about the project structure or impleme
 
 ---
 
-*Last Updated: March 2026*  
-*Project Health: Good - Functional with some production optimizations needed*
-
-
-## 📋 待实现功能Todo清单
-
-
-### 第一阶段：Redis缓存层
-
-- [ ] 添加`spring-boot-starter-data-redis`依赖到pom.xml
-- [ ] 配置Redis连接参数到`application.properties`
-- [ ] 创建Redis配置类
-- [ ] 为热点查询接口添加缓存注解（如`@Cacheable`）
-- [ ] 实现缓存更新/失效策略
-
-### 第二阶段：定时任务 - 临期豆子预警
-
-- [ ] 创建`ScheduledTaskService`类
-- [ ] 使用`@Scheduled(cron = "0 0 9 * * *")`每天9点扫描
-- [ ] 实现临期豆子检测逻辑（如烘焙日期+30天）
-- [ ] 存储预警信息到数据库或Redis
-- [ ] 在`HomeView.vue`首页添加预警展示模块
-
-### 第三阶段：AI降级方案优化
-
-- [ ] 改进`AIService`异常日志记录
-- [ ] 添加详细的降级方案日志（记录API失败原因、响应码等）
-- [ ] 实现异步AI处理（可选，简历提到异步）
-
-### 第四阶段：最近使用参数模板功能
-
-- [ ] 后端：创建API保存用户的最近冲煮参数
-- [ ] 后端：创建`RecentBrewTemplate`实体和Repository
-- [ ] 前端：`AddBrewView.vue`添加"使用最近参数"按钮
-- [ ] 前端：实现表单自动填充逻辑
-- [ ] 优化用户体验（模板选择、保存等）
-
-### 第五阶段：性能优化指标
-
-- [ ] 添加响应时间监控
-- [ ] AI接口异步处理改造（使用`@Async`）
+*Last Updated: May 2026*
