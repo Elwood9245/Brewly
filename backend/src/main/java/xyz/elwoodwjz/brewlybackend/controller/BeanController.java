@@ -10,6 +10,7 @@ import xyz.elwoodwjz.brewlybackend.dto.bean.BeanResponse;
 import xyz.elwoodwjz.brewlybackend.entity.Bean;
 import xyz.elwoodwjz.brewlybackend.service.BeanService;
 import xyz.elwoodwjz.brewlybackend.security.CustomUserDetailsService.CustomUserPrincipal;
+import xyz.elwoodwjz.brewlybackend.exception.UnauthorizedException;
 
 import java.util.List;
 import java.util.Optional;
@@ -34,8 +35,9 @@ public class BeanController {
     }
 
     @GetMapping
-    public ResponseEntity<List<BeanResponse>> getAllBeans() {
-        List<Bean> beans = beanService.getAllBeans();
+    public ResponseEntity<List<BeanResponse>> getAllBeans(Authentication authentication) {
+        UUID userId = getUserIdFromAuthentication(authentication);
+        List<Bean> beans = beanService.getBeansByUserId(userId);
         List<BeanResponse> responses = beans.stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
@@ -53,9 +55,13 @@ public class BeanController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<BeanResponse> getBeanById(@PathVariable UUID id) {
+    public ResponseEntity<BeanResponse> getBeanById(@PathVariable UUID id, Authentication authentication) {
+        UUID userId = getUserIdFromAuthentication(authentication);
         Optional<Bean> bean = beanService.getBeanById(id);
         if (bean.isPresent()) {
+            if (!bean.get().getUserId().equals(userId)) {
+                throw new UnauthorizedException("You can only access your own beans");
+            }
             return ResponseEntity.ok(mapToResponse(bean.get()));
         }
         return ResponseEntity.notFound().build();
@@ -74,9 +80,8 @@ public class BeanController {
         UUID userId = getUserIdFromAuthentication(authentication);
         Optional<Bean> existingBean = beanService.getBeanById(id);
         if (existingBean.isPresent()) {
-            // Check if the bean belongs to the authenticated user
             if (!existingBean.get().getUserId().equals(userId)) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+                throw new UnauthorizedException("You can only update your own beans");
             }
             Bean bean = mapToEntity(request, userId);
             bean.setId(id);
@@ -91,9 +96,8 @@ public class BeanController {
         UUID userId = getUserIdFromAuthentication(authentication);
         Optional<Bean> existingBean = beanService.getBeanById(id);
         if (existingBean.isPresent()) {
-            // Check if the bean belongs to the authenticated user
             if (!existingBean.get().getUserId().equals(userId)) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+                throw new UnauthorizedException("You can only delete your own beans");
             }
             beanService.deleteBean(id);
             return ResponseEntity.noContent().build();
