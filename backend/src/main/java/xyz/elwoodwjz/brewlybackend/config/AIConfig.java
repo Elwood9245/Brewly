@@ -7,15 +7,21 @@ import org.springframework.stereotype.Component;
 @Data
 @Component
 public class AIConfig {
-    @Value("${anthropic.api.key}")
+    @Value("${deepseek.api.key}")
     private String apiKey;
     
-    @Value("${anthropic.model}")
+    @Value("${deepseek.model}")
     private String model;
     
-    @Value("${anthropic.max-tokens:1000}")
+    @Value("${deepseek.max-tokens:1000}")
     private Integer maxTokens;
     
-    @Value("${anthropic.temperature:0.5}")
+    @Value("${deepseek.temperature:0.5}")
     private Double temperature;
+    
+    @Value("${deepseek.api.url}")
+    private String apiUrl;
+
+    @Value("${deepseek.api.path:/chat/completions}")
+    private String apiPath;
 }
