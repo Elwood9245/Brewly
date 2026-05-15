@@ -60,7 +60,9 @@ public class SecurityConfig {
         configuration.setAllowedOriginPatterns(Arrays.asList("*"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setExposedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
@@ -78,6 +80,7 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .securityContext(securityContext -> securityContext.requireExplicitSave(false))
             .exceptionHandling(ex -> ex
                 .authenticationEntryPoint(securityExceptionHandler)
                 .accessDeniedHandler(securityExceptionHandler)
@@ -87,12 +90,20 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/login", "/api/auth/register").permitAll()
                 .requestMatchers("/actuator/health").permitAll()
                 .requestMatchers("/api/recipes/public/**").permitAll()
+                // Allow OPTIONS requests for CORS preflight
+                .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
                 // All other endpoints require authentication
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    static {
+        // Propagate SecurityContext to child threads (needed for async/streaming responses)
+        org.springframework.security.core.context.SecurityContextHolder
+            .setStrategyName(org.springframework.security.core.context.SecurityContextHolder.MODE_INHERITABLETHREADLOCAL);
     }
 
     /**

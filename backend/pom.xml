@@ -28,6 +28,11 @@
 	</scm>
 	<properties>
 		<java.version>21</java.version>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        <maven.compiler.proc>full</maven.compiler.proc>
+        <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 	<dependencies>
 			<dependency>
@@ -71,7 +76,7 @@
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
-			<version>1.18.32</version>
+			<version>1.18.36</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
@@ -90,11 +95,6 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-webflux</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.anthropic</groupId>
-			<artifactId>anthropic-java</artifactId>
-			<version>1.0.0</version>
 		</dependency>
 	</dependencies>
 

@@ -37,4 +37,4 @@ public class Like {
         private UUID userId;
         private UUID recipeId;
     }
-} 
+}

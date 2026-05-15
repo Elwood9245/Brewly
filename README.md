@@ -315,3 +315,42 @@ If you encounter issues or have questions about the project structure or impleme
 
 *Last Updated: March 2026*  
 *Project Health: Good - Functional with some production optimizations needed*
+
+
+## 📋 待实现功能Todo清单
+
+
+### 第一阶段：Redis缓存层
+
+- [ ] 添加`spring-boot-starter-data-redis`依赖到pom.xml
+- [ ] 配置Redis连接参数到`application.properties`
+- [ ] 创建Redis配置类
+- [ ] 为热点查询接口添加缓存注解（如`@Cacheable`）
+- [ ] 实现缓存更新/失效策略
+
+### 第二阶段：定时任务 - 临期豆子预警
+
+- [ ] 创建`ScheduledTaskService`类
+- [ ] 使用`@Scheduled(cron = "0 0 9 * * *")`每天9点扫描
+- [ ] 实现临期豆子检测逻辑（如烘焙日期+30天）
+- [ ] 存储预警信息到数据库或Redis
+- [ ] 在`HomeView.vue`首页添加预警展示模块
+
+### 第三阶段：AI降级方案优化
+
+- [ ] 改进`AIService`异常日志记录
+- [ ] 添加详细的降级方案日志（记录API失败原因、响应码等）
+- [ ] 实现异步AI处理（可选，简历提到异步）
+
+### 第四阶段：最近使用参数模板功能
+
+- [ ] 后端：创建API保存用户的最近冲煮参数
+- [ ] 后端：创建`RecentBrewTemplate`实体和Repository
+- [ ] 前端：`AddBrewView.vue`添加"使用最近参数"按钮
+- [ ] 前端：实现表单自动填充逻辑
+- [ ] 优化用户体验（模板选择、保存等）
+
+### 第五阶段：性能优化指标
+
+- [ ] 添加响应时间监控
+- [ ] AI接口异步处理改造（使用`@Async`）

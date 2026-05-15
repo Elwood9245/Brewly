@@ -52,8 +52,8 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { chatWithAI } from '../api/ai.js'
+import { ref, nextTick } from 'vue'
+import { chatWithAIStream } from '../api/ai-stream.js'
 
 const messages = ref([])
 const inputMessage = ref('')
@@ -71,27 +71,45 @@ const sendMessage = async (message) => {
   
   isLoading.value = true
   
+  // Add AI message placeholder
+  const aiMessageIndex = messages.value.length
+  messages.value.push({
+    type: 'ai',
+    text: '',
+    timestamp: new Date()
+  })
+  
+  inputMessage.value = ''
+  
   try {
-    const response = await chatWithAI(message)
-    
-    // Add AI response to list
-    messages.value.push({
-      type: 'ai',
-      text: response.message,
-      timestamp: new Date(response.timestamp)
-    })
-    
-    inputMessage.value = ''
+    await chatWithAIStream(
+      message,
+      // onChunk - update AI message as chunks arrive
+      (chunk, fullText) => {
+        messages.value[aiMessageIndex].text = fullText
+        // Auto-scroll to bottom
+        nextTick(() => {
+          const messagesList = document.querySelector('.messages-list')
+          if (messagesList) {
+            messagesList.scrollTop = messagesList.scrollHeight
+          }
+        })
+      },
+      // onComplete
+      (fullText) => {
+        messages.value[aiMessageIndex].text = fullText
+        isLoading.value = false
+      },
+      // onError
+      (error) => {
+        console.error('Streaming error:', error)
+        messages.value[aiMessageIndex].text = 'Sorry, I encountered an error. Please try again.'
+        isLoading.value = false
+      }
+    )
   } catch (error) {
     console.error('Error sending message:', error)
-    
-    // Add error message
-    messages.value.push({
-      type: 'ai',
-      text: 'Sorry, I encountered an error. Please try again.',
-      timestamp: new Date()
-    })
-  } finally {
+    messages.value[aiMessageIndex].text = 'Sorry, I encountered an error. Please try again.'
     isLoading.value = false
   }
 }
