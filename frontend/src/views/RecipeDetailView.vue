@@ -135,6 +135,14 @@
         />
       </div>
     </div>
+
+    <ConfirmModal
+      :visible="showDeleteModal"
+      title="Delete Recipe"
+      :message="`Are you sure you want to delete '${recipe?.title}'?`"
+      @confirm="confirmDelete"
+      @cancel="showDeleteModal = false"
+    />
   </div>
 </template>
 
@@ -153,16 +161,20 @@ import {
 } from '../api/recipes.js'
 import StepDisplay from '../components/StepDisplay.vue'
 import CommentSection from '../components/CommentSection.vue'
+import ConfirmModal from '../components/ConfirmModal.vue'
+import { useToast } from '../stores/toast.js'
 
 const router = useRouter()
 const route = useRoute()
 const auth = useAuthStore()
+const toast = useToast()
 
 const recipe = ref(null)
 const comments = ref([])
 const loading = ref(false)
 const error = ref(null)
 const submittingComment = ref(false)
+const showDeleteModal = ref(false)
 
 const canEdit = computed(() => {
   return recipe.value && recipe.value.userId === auth.currentUser.value?.id
@@ -231,7 +243,7 @@ const handleLike = async () => {
     }
   } catch (err) {
     console.error('Error toggling like:', err)
-    alert('Failed to update like. Please try again.')
+    toast.error('Failed to update like. Please try again.')
   }
 }
 
@@ -246,7 +258,7 @@ const addComment = async (content) => {
     recipe.value.commentCount = (recipe.value.commentCount || 0) + 1
   } catch (err) {
     console.error('Error adding comment:', err)
-    alert('Failed to add comment. Please try again.')
+    toast.error('Failed to add comment. Please try again.')
   } finally {
     submittingComment.value = false
   }
@@ -261,24 +273,27 @@ const deleteComment = async (commentId) => {
     recipe.value.commentCount = Math.max(0, (recipe.value.commentCount || 0) - 1)
   } catch (err) {
     console.error('Error deleting comment:', err)
-    alert('Failed to delete comment. Please try again.')
+    toast.error('Failed to delete comment. Please try again.')
   }
 }
 
 const canDeleteComment = (comment) => {
-  return comment.userId === auth.currentUser.value?.id || 
+  return comment.userId === auth.currentUser.value?.id ||
          recipe.value?.userId === auth.currentUser.value?.id
 }
 
-const handleDelete = async () => {
-  if (!confirm('Are you sure you want to delete this recipe?')) return
+const handleDelete = () => {
+  showDeleteModal.value = true
+}
 
+const confirmDelete = async () => {
+  showDeleteModal.value = false
   try {
     await deleteRecipe(recipe.value.id)
     router.push('/recipes')
   } catch (err) {
     console.error('Error deleting recipe:', err)
-    alert('Failed to delete recipe. Please try again.')
+    toast.error('Failed to delete recipe. Please try again.')
   }
 }
 

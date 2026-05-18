@@ -168,15 +168,18 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import RecipeCard from '../components/RecipeCard.vue'
-import { 
-  getPublicRecipes, 
-  searchPublicRecipes, 
+import {
+  getPublicRecipes,
+  searchPublicRecipes,
   getPublicRecipesByMethod,
   likeRecipe,
   unlikeRecipe,
   bookmarkRecipe,
   getBookmarkStatus
 } from '../api/recipes.js'
+import { useToast } from '../stores/toast.js'
+
+const toast = useToast()
 
 const recipes = ref([])
 const loading = ref(false)
@@ -264,35 +267,37 @@ const handleLike = async (recipeId) => {
     }
   } catch (err) {
     console.error('Error toggling like:', err)
-    alert('Failed to update like. Please try again.')
+    toast.error('Failed to update like. Please try again.')
   }
 }
 
 const handleBookmark = async (recipeId) => {
   try {
     const isCurrentlyBookmarked = bookmarkStatuses.value.get(recipeId)
-    
+
     if (isCurrentlyBookmarked) {
-      // Already bookmarked, show message
-      alert('This recipe is already bookmarked. You can find it in your bookmarked recipes.')
+      toast.info('This recipe is already in your bookmarks.')
     } else {
-      // Bookmark the recipe
       await bookmarkRecipe(recipeId)
       bookmarkStatuses.value.set(recipeId, true)
-      alert('Recipe bookmarked successfully! You can find it in your bookmarked recipes.')
+      toast.success('Recipe bookmarked! Find it in My Recipes > Bookmarked.')
     }
   } catch (err) {
     console.error('Error bookmarking recipe:', err)
-    alert('Failed to bookmark recipe. Please try again.')
+    toast.error('Failed to bookmark recipe. Please try again.')
   }
 }
 
 const loadBookmarkStatuses = async () => {
   try {
-    for (const recipe of recipes.value) {
-      const isBookmarked = await getBookmarkStatus(recipe.id)
-      bookmarkStatuses.value.set(recipe.id, isBookmarked)
-    }
+    const results = await Promise.allSettled(
+      recipes.value.map(recipe => getBookmarkStatus(recipe.id))
+    )
+    results.forEach((result, index) => {
+      if (result.status === 'fulfilled') {
+        bookmarkStatuses.value.set(recipes.value[index].id, result.value)
+      }
+    })
   } catch (err) {
     console.error('Error loading bookmark statuses:', err)
   }

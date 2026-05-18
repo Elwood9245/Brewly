@@ -175,9 +175,7 @@ const bookmarkIconClass = computed(() => {
 })
 
 const handleDelete = () => {
-  if (confirm('Are you sure you want to delete this recipe?')) {
-    emit('delete', props.recipe.id)
-  }
+  emit('delete', props.recipe.id)
 }
 
 const handleLike = () => {

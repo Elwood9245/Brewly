@@ -1,10 +1,12 @@
 import { ref, computed } from 'vue'
+import { defineStore } from 'pinia'
 import apiClient from '../api/client.js'
 
-const isAuthenticated = ref(false)
-const currentUser = ref(null)
+export const useAuthStore = defineStore('auth', () => {
+  const token = ref(localStorage.getItem('auth_token') || null)
+  const currentUser = ref(null)
+  const isAuthenticated = ref(false)
 
-export function useAuthStore() {
   const login = async (credentials) => {
     try {
       const response = await apiClient.post('/auth/login', {
@@ -13,9 +15,10 @@ export function useAuthStore() {
       })
 
       const data = response.data
-      
+
+      token.value = data.token
       localStorage.setItem('auth_token', data.token)
-      
+
       const userResult = await fetchCurrentUser()
       if (userResult.success) {
         return { success: true, user: userResult.user }
@@ -50,7 +53,7 @@ export function useAuthStore() {
         username: data.user.username,
         email: data.user.email
       }
-      
+
       return { success: true, user: user }
     } catch (error) {
       const errorMessage = error.response?.data?.message || error.message || 'Registration failed'
@@ -76,6 +79,7 @@ export function useAuthStore() {
   }
 
   const logout = () => {
+    token.value = null
     isAuthenticated.value = false
     currentUser.value = null
     localStorage.removeItem('auth_token')
@@ -83,9 +87,9 @@ export function useAuthStore() {
   }
 
   const checkAuthStatus = async () => {
-    const token = localStorage.getItem('auth_token')
+    const storedToken = localStorage.getItem('auth_token')
 
-    if (token) {
+    if (storedToken) {
       const result = await fetchCurrentUser()
       if (result.success) {
         return true
@@ -94,12 +98,12 @@ export function useAuthStore() {
         return false
       }
     } else {
-      const user = localStorage.getItem('user')
-      if (user) {
+      const cachedUser = localStorage.getItem('user')
+      if (cachedUser) {
         try {
-          currentUser.value = JSON.parse(user)
+          currentUser.value = JSON.parse(cachedUser)
           return false
-        } catch (e) {
+        } catch {
           logout()
           return false
         }
@@ -108,16 +112,16 @@ export function useAuthStore() {
     return false
   }
 
-  const getUser = computed(() => currentUser.value)
-  const getIsAuthenticated = computed(() => isAuthenticated.value)
+  const user = computed(() => currentUser.value)
+  const authenticated = computed(() => isAuthenticated.value)
 
   return {
-    isAuthenticated: getIsAuthenticated,
-    currentUser: getUser,
+    isAuthenticated: authenticated,
+    currentUser: user,
     login,
     register,
     logout,
     checkAuthStatus,
     fetchCurrentUser
   }
-}
+})

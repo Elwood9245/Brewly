@@ -149,8 +149,10 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import RecipeCard from '../components/RecipeCard.vue'
 import { getMyRecipes, getBookmarkedRecipes, deleteRecipe, unbookmarkRecipe } from '../api/recipes.js'
+import { useToast } from '../stores/toast.js'
 
 const router = useRouter()
+const toast = useToast()
 
 const recipes = ref([])
 const loading = ref(false)
@@ -228,7 +230,7 @@ const handleDeleteRecipe = async (recipeId) => {
     await loadRecipeCounts()
   } catch (err) {
     console.error('Error deleting recipe:', err)
-    alert('Failed to delete recipe. Please try again.')
+    toast.error('Failed to delete recipe. Please try again.')
   }
 }
 

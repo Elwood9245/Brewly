@@ -2,13 +2,12 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth.js'
-import { getBrewLogStatistics } from '../api/brewlogs.js'
-import { getUserBrewLogs } from '../api/brewlogs.js'
+import { getBrewLogStatistics, getUserBrewLogs } from '../api/brewlogs.js'
+import { getPublicRecipes, likeRecipe, unlikeRecipe } from '../api/recipes.js'
 
 const router = useRouter()
 const auth = useAuthStore()
 
-// Empty data arrays - will be populated with real data from API
 const brewLogs = ref([])
 const recentRecipes = ref([])
 
@@ -28,8 +27,8 @@ const loadStatistics = async () => {
     if (response) {
       stats.value = {
         totalBrews: response.totalBrewLogs || 0,
-        favoriteMethod: response.methodStatistics && response.methodStatistics.length > 0 
-          ? response.methodStatistics[0].method 
+        favoriteMethod: response.methodStatistics && response.methodStatistics.length > 0
+          ? response.methodStatistics[0].method
           : null,
         averageRating: response.averageRating || 0,
         streakDays: response.totalBrewsThisWeek || 0
@@ -44,7 +43,7 @@ const loadStatistics = async () => {
 
 const loadRecentBrews = async () => {
   try {
-    const response = await getUserBrewLogs(0, 3) // Get first 3 brews
+    const response = await getUserBrewLogs(0, 3)
     if (response && response.brewLogs) {
       brewLogs.value = response.brewLogs
     }
@@ -53,28 +52,49 @@ const loadRecentBrews = async () => {
   }
 }
 
+const loadPopularRecipes = async () => {
+  try {
+    const response = await getPublicRecipes(0, 4, 'popular')
+    if (response && response.content) {
+      recentRecipes.value = response.content
+    }
+  } catch (err) {
+    console.error('Error loading popular recipes:', err)
+  }
+}
+
 const formatDate = (dateString) => {
   if (!dateString) return ''
   const date = new Date(dateString)
-  return date.toLocaleDateString('en-US', { 
-    month: 'short', 
-    day: 'numeric' 
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric'
   })
 }
 
 onMounted(() => {
   loadStatistics()
   loadRecentBrews()
+  loadPopularRecipes()
 })
 
 const navigateToAddBrew = () => {
   router.push('/addbrew')
 }
 
-const likeRecipe = (recipeId) => {
-  const recipe = recentRecipes.value.find(r => r.id === recipeId)
-  if (recipe) {
-    recipe.likes++
+const handleLikeRecipe = async (recipe) => {
+  try {
+    if (recipe.isLikedByCurrentUser) {
+      await unlikeRecipe(recipe.id)
+      recipe.isLikedByCurrentUser = false
+      recipe.likeCount--
+    } else {
+      await likeRecipe(recipe.id)
+      recipe.isLikedByCurrentUser = true
+      recipe.likeCount++
+    }
+  } catch (err) {
+    console.error('Error toggling like:', err)
   }
 }
 
@@ -202,26 +222,27 @@ const navigateToExplore = () => {
       </div>
       
       <div class="row" v-if="recentRecipes.length > 0">
-        <div 
-          v-for="recipe in recentRecipes" 
+        <div
+          v-for="recipe in recentRecipes"
           :key="recipe.id"
           class="col-md-6 mb-3"
         >
-          <div class="card recipe-card h-100"> 
-            <div class="recipe-image" :style="`background-image: url(${recipe.image})`"></div>
+          <div class="card recipe-card h-100">
             <div class="card-body p-3">
               <div class="d-flex justify-content-between align-items-start mb-1">
-                <h5 class="card-title mb-0">{{ recipe.name }}</h5>
+                <h5 class="card-title mb-0">{{ recipe.title }}</h5>
+                <span v-if="recipe.method" class="badge bg-secondary">{{ recipe.method }}</span>
               </div>
-              <p class="small mb-2">by {{ recipe.author }}</p>
+              <p class="small text-secondary mb-2" v-if="recipe.description">{{ recipe.description.substring(0, 80) }}{{ recipe.description.length > 80 ? '...' : '' }}</p>
               <div class="d-flex justify-content-between align-items-center">
-                <button 
-                  class="btn btn-outline-danger btn-sm"
-                  @click="likeRecipe(recipe.id)"
+                <button
+                  class="btn btn-sm"
+                  :class="recipe.isLikedByCurrentUser ? 'btn-danger' : 'btn-outline-danger'"
+                  @click="handleLikeRecipe(recipe)"
                 >
-                  <i class="bi bi-heart me-1"></i>{{ recipe.likes }}
+                  <i class="bi bi-heart me-1"></i>{{ recipe.likeCount }}
                 </button>
-                <a href="#" class="btn btn-primary btn-sm">Try It</a>
+                <router-link :to="`/recipes/${recipe.id}`" class="btn btn-primary btn-sm">View</router-link>
               </div>
             </div>
           </div>

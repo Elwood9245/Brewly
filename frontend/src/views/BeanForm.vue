@@ -169,8 +169,10 @@ import { ref, reactive, computed, watch, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { createBean, updateBean, getBeanById, beanUtils, BLEND_TYPES, ROAST_LEVELS } from '../api/beans.js'
 import { useAuthStore } from '../stores/auth.js'
+import { useBeanStore } from '../stores/beans.js'
 
 const route = useRoute()
+const beanStore = useBeanStore()
 
 // If editing, beanId will be present in route params
 const beanId = computed(() => route.params.id)
@@ -301,10 +303,7 @@ async function onSubmit() {
       resetForm()
     }
 
-    // Notify inventory to refresh
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new Event('bean-changed'))
-    }
+    beanStore.triggerRefresh()
   } catch (e) {
     if (e.response?.data?.message) {
       submitError.value = e.response.data.message

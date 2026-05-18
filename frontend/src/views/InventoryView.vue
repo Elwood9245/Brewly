@@ -118,13 +118,15 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { deleteBean, getUserBeans } from '../api/beans.js'
 import { useAuthStore } from '../stores/auth.js'
+import { useBeanStore } from '../stores/beans.js'
 import BeanCard from '../components/BeanCard.vue'
 
-// Get auth store
+// Get stores
 const auth = useAuthStore()
+const beanStore = useBeanStore()
 
 const beans = ref([])
 const loading = ref(false)
@@ -206,12 +208,9 @@ onMounted(() => {
   fetchBeans()
 })
 
-// Listen for bean-changed event from BeanForm (if used as a child)
-if (typeof window !== 'undefined') {
-  window.addEventListener('bean-changed', () => {
-    fetchBeans()
-  })
-}
+watch(() => beanStore.refreshTrigger.value, () => {
+  fetchBeans()
+})
 </script>
 
 <style scoped>

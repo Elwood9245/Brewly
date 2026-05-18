@@ -191,9 +191,11 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { createRecipe, updateRecipe, getRecipeById } from '../api/recipes.js'
 import StepDisplay from './StepDisplay.vue'
+import { useToast } from '../stores/toast.js'
 
 const router = useRouter()
 const route = useRoute()
+const toast = useToast()
 
 const props = defineProps({
   isEditing: {
@@ -289,11 +291,7 @@ const handleSubmit = async () => {
     emit('saved')
   } catch (error) {
     console.error('Error saving recipe:', error)
-    if (error.response?.data?.message) {
-      alert(error.response.data.message)
-    } else {
-      alert('Failed to save recipe. Please try again.')
-    }
+    toast.error(error.response?.data?.message || 'Failed to save recipe. Please try again.')
   } finally {
     submitting.value = false
   }
@@ -317,7 +315,7 @@ onMounted(async () => {
       })
     } catch (error) {
       console.error('Error loading recipe:', error)
-      alert('Failed to load recipe data.')
+      toast.error('Failed to load recipe data.')
     }
   }
 })

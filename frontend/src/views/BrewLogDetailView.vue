@@ -176,6 +176,14 @@
         </div>
       </div>
     </div>
+
+    <ConfirmModal
+      :visible="showDeleteModal"
+      title="Delete Brew Log"
+      message="Are you sure you want to delete this brew log?"
+      @confirm="confirmDelete"
+      @cancel="showDeleteModal = false"
+    />
   </div>
 </template>
 
@@ -183,13 +191,17 @@
 import {ref, onMounted} from 'vue'
 import {useRouter, useRoute} from 'vue-router'
 import {getBrewLogById, deleteBrewLog} from '../api/brewlogs.js'
+import ConfirmModal from '../components/ConfirmModal.vue'
+import {useToast} from '../stores/toast.js'
 
 const router = useRouter()
 const route = useRoute()
+const toast = useToast()
 
 const brewLog = ref(null)
 const loading = ref(false)
 const error = ref(null)
+const showDeleteModal = ref(false)
 
 const goBack = () => {
   router.push('/brewlogs')
@@ -199,17 +211,18 @@ const editBrewLog = () => {
   router.push(`/brewlogs/${route.params.id}/edit`)
 }
 
-const deleteBrewLogHandler = async () => {
-  if (!confirm('Are you sure you want to delete this brew log?')) {
-    return
-  }
+const deleteBrewLogHandler = () => {
+  showDeleteModal.value = true
+}
 
+const confirmDelete = async () => {
+  showDeleteModal.value = false
   try {
     await deleteBrewLog(route.params.id)
     router.push('/brewlogs')
   } catch (err) {
     console.error('Error deleting brew log:', err)
-    alert('Failed to delete brew log. Please try again.')
+    toast.error('Failed to delete brew log. Please try again.')
   }
 }
 

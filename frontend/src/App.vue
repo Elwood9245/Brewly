@@ -65,21 +65,6 @@
                         <h6 class="mb-2">Account</h6>
                         <ul class="list-group list-group-flush">
                             <li class="list-group-item px-0">
-                                <a href="#" class="text-decoration-none text-black">
-                                    <i class="bi bi-person me-2"></i>My Profile
-                                </a>
-                            </li>
-                            <li class="list-group-item px-0">
-                                <a href="#" class="text-decoration-none text-black">
-                                    <i class="bi bi-gear me-2"></i>Settings
-                                </a>
-                            </li>
-                            <li class="list-group-item px-0">
-                                <a href="#" class="text-decoration-none text-black">
-                                    <i class="bi bi-question-circle me-2"></i>Help
-                                </a>
-                            </li>
-                            <li class="list-group-item px-0">
                                 <a href="#" @click.prevent="handleLogout" class="text-decoration-none text-danger">
                                     <i class="bi bi-box-arrow-right me-2"></i>Logout
                                 </a>
@@ -119,6 +104,8 @@
         <div v-else>
             <router-view />
         </div>
+
+        <ToastNotification />
     </div>
 </template>
 
@@ -126,6 +113,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from './stores/auth.js'
+import ToastNotification from './components/ToastNotification.vue'
 
 const router = useRouter()
 const route = useRoute()
